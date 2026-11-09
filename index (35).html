@@ -1,0 +1,2130 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+<head>
+  <title>Ronda Afya</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0C2340">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+  /* Design System Afya · Dark UI de alto contraste, pensado para uso em campo */
+  :root {
+    --primaria: #E91E63;
+    --primaria-escura: #D81B60;
+    --secundaria: #0C2340;
+    --fundo: #121824;
+    --fundo-2: #1E293B;
+    --card: #2A364F;
+    --borda: #3D4C69;
+    --texto: #F8FAFC;
+    --texto-2: #CBD5E1;
+    --ok: #34D399;
+    --atencao: #FBBF24;
+    --problema: #F87171;
+    --grafico: var(--primaria);
+    --raio: 12px;
+    --bs-body-font-family: Inter, Roboto, "Segoe UI", system-ui, sans-serif;
+  }
+  html[data-tema=claro] { --fundo: #F1F5F9; --fundo-2: #FFFFFF; --card: #FFFFFF; --borda: #CBD5E1; --texto: #0F172A; --texto-2: #475569; --ok: #047857; --atencao: #B45309; --problema: #B91C1C; }
+  html[data-tema=claro] .painel, html[data-tema=claro] .kpi { border: 1px solid var(--borda); }
+  html[data-tema=claro] .imp-status.erro { color: var(--problema); }
+  html[data-tema=claro] .segmento button[aria-pressed=true] { background: var(--secundaria); color: #fff; }
+  [hidden] { display: none !important; }
+  html, body { background: var(--fundo); color: var(--texto); min-height: 100%; }
+  body { font-family: Inter, Roboto, "Segoe UI", system-ui, sans-serif; font-size: 16px; -webkit-tap-highlight-color: transparent; }
+  h1, h2, h3 { font-weight: 700; }
+  .texto-suave { color: var(--texto-2); }
+  .form-label, legend.form-label { font-size: .875rem; font-weight: 600; color: var(--texto-2); margin-bottom: .35rem; }
+  .form-control, .form-select { background-color: var(--fundo-2); border-color: var(--borda); color: var(--texto); min-height: 48px; border-radius: 10px; font-size: 16px; }
+  .form-control:focus, .form-select:focus { background-color: var(--fundo-2); color: var(--texto); border-color: var(--primaria); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primaria) 35%, transparent); }
+  .form-control-color { width: 72px; padding: 4px; }
+  :focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+  /* Botões */
+  .btn { min-height: 44px; border-radius: 10px; font-weight: 600; }
+  .btn-primario { background: var(--primaria-escura); border: 0; color: #fff; }
+  .btn-primario:hover, .btn-primario:active, .btn-primario:focus { background: var(--primaria) !important; color: #fff !important; }
+  .btn-primario:disabled { background: var(--borda); color: var(--texto-2); opacity: 1; }
+  .btn-secundario { background: var(--secundaria); border: 1px solid var(--borda); color: #fff; }
+  .btn-secundario:hover { color: #fff; filter: brightness(1.25); }
+  .btn-fantasma { background: transparent; border: 1px solid var(--borda); color: var(--texto); }
+  .btn-fantasma:hover { background: var(--card); color: var(--texto); }
+  .btn-foto { background: var(--fundo-2); border: 1px dashed var(--texto-2); color: var(--texto); min-height: 52px; }
+  .btn-foto:hover { background: var(--card); color: var(--texto); }
+
+  /* Login */
+  .login { min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 24px; background: var(--primaria-escura); }
+  .login-card { width: 100%; max-width: 400px; background: var(--fundo); border-radius: 16px; padding: 32px 24px; text-align: center; box-shadow: 0 18px 44px rgba(0,0,0,.35); }
+  .login-card h1 { font-size: 1.45rem; margin: 14px 0 4px; line-height: 1.25; }
+  .login-card label { display: block; text-align: left; }
+  .login-sub { color: var(--texto-2); margin-bottom: 26px; }
+  .login-erro { background: rgba(248,113,113,.15); color: #FECACA; border-radius: 10px; padding: 10px; margin-bottom: 12px; font-size: .9rem; }
+  .marca-logo { width: 64px; height: 64px; margin: 0 auto; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: var(--primaria-escura); color: #fff; font-weight: 800; font-size: 28px; overflow: hidden; }
+  .marca-logo img { width: 100%; height: 100%; object-fit: contain; }
+  .marca-logo.tem-imagem { width: auto; max-width: 220px; padding: 6px 10px; background: #fff; }
+  .marca-logo.tem-imagem img { width: auto; max-width: 100%; }
+  .marca-logo.pequeno.tem-imagem { width: auto; max-width: 104px; padding: 3px 6px; }
+  .marca-logo.pequeno { width: 32px; height: 32px; font-size: 15px; border-radius: 8px; flex: none; margin: 0; }
+
+  /* Cabeçalho */
+  .topo { --texto: #F8FAFC; --texto-2: #CBD5E1; --borda: rgba(255,255,255,.35); --card: rgba(255,255,255,.14); color: var(--texto); position: sticky; top: 0; z-index: 20; background: var(--secundaria); padding: 10px 14px 12px; padding-top: max(10px, env(safe-area-inset-top)); box-shadow: 0 2px 10px rgba(0,0,0,.35); }
+  .topo-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .topo-acoes { display: flex; gap: 6px; flex: none; }
+  .marca-mini { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .marca-texto { font-weight: 700; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .progresso-texto { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; font-size: .95rem; }
+  .pendentes { background: var(--atencao); color: #1f1600; font-size: .75rem; font-weight: 700; border-radius: 99px; padding: 2px 9px; white-space: nowrap; }
+  .progresso { height: 6px; background: rgba(255,255,255,.18); border-radius: 99px; margin-top: 6px; overflow: hidden; }
+  .progresso-valor { height: 100%; width: 0; background: var(--primaria); border-radius: 99px; transition: width .3s; }
+  .abas-bloco { display: flex; gap: 6px; margin-top: 12px; }
+  .abas-bloco button { flex: 1; min-height: 48px; border: 0; border-radius: 10px; background: rgba(255,255,255,.1); color: var(--texto); font-weight: 700; font-size: .9rem; }
+  .abas-bloco button.ativa { background: var(--primaria-escura); color: #fff; }
+  .abas-bloco small { display: block; font-weight: 500; font-size: .72rem; opacity: .9; }
+  .chips { display: flex; gap: 6px; margin-top: 8px; }
+  .chips button { flex: 1; min-height: 40px; border: 1px solid rgba(255,255,255,.28); background: transparent; color: var(--texto); border-radius: 99px; font-size: .85rem; font-weight: 600; }
+  .chips button.ativa { background: #fff; color: var(--secundaria); border-color: #fff; }
+
+  /* Salas */
+  .conteudo { padding: 14px 14px 96px; max-width: 1200px; margin: 0 auto; }
+  .grade-salas { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 10px; }
+  .sala-card { position: relative; text-align: left; border: 1px solid var(--borda); background: var(--card); color: var(--texto); border-radius: var(--raio); padding: 12px 12px 12px 16px; min-height: 132px; overflow: hidden; display: flex; flex-direction: column; gap: 3px; }
+  .sala-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 6px; background: var(--borda); }
+  .sala-card:active { transform: scale(.98); }
+  .sala-card[data-status=ok]::before { background: var(--ok); }
+  .sala-card[data-status=atencao]::before { background: var(--atencao); }
+  .sala-card[data-status=problema]::before { background: var(--problema); }
+  .sala-nome { font-size: 1.3rem; font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
+  .sala-info { font-size: .82rem; color: var(--texto-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sala-status { margin-top: auto; padding-top: 6px; font-size: .78rem; font-weight: 700; }
+  .sala-card[data-status=ok] .sala-status { color: var(--ok); }
+  .sala-card[data-status=atencao] .sala-status { color: var(--atencao); }
+  .sala-card[data-status=problema] .sala-status { color: var(--problema); }
+  .vazio { grid-column: 1 / -1; text-align: center; color: var(--texto-2); padding: 48px 16px; }
+  .fab.fab-esquerda { right: auto; left: 14px; background: var(--secundaria) !important; border: 1px solid var(--borda) !important; }
+  .fab { position: fixed; right: 14px; bottom: max(14px, env(safe-area-inset-bottom)); z-index: 15; min-height: 52px; padding: 0 18px; border: 0; border-radius: 99px; background: var(--primaria-escura); color: #fff; font-weight: 700; box-shadow: 0 8px 20px rgba(0,0,0,.45); }
+
+  /* Modal */
+  .modal-content { background: var(--fundo-2); border: 1px solid var(--borda); }
+  .modal-header, .modal-footer { border-color: var(--borda); }
+  .modal-title { font-size: 1.25rem; margin: 0; }
+  .modal-contexto { color: var(--texto-2); font-size: .85rem; margin-top: 2px; }
+  .situacoes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .situacoes button { min-height: 64px; padding: 8px; border: 2px solid var(--borda); background: var(--card); color: var(--texto); border-radius: 10px; font-size: .84rem; font-weight: 700; line-height: 1.2; }
+  .situacoes button small { display: block; font-weight: 500; font-size: .7rem; color: var(--texto-2); margin-top: 2px; }
+  .situacoes button[aria-pressed=true][data-nivel=ok] { border-color: var(--ok); background: rgba(52,211,153,.18); }
+  .situacoes button[aria-pressed=true][data-nivel=atencao] { border-color: var(--atencao); background: rgba(251,191,36,.18); }
+  .situacoes button[aria-pressed=true][data-nivel=problema] { border-color: var(--problema); background: rgba(248,113,113,.18); }
+  .segmento { display: flex; border: 1px solid var(--borda); border-radius: 10px; overflow: hidden; }
+  .segmento button { flex: 1; min-height: 48px; border: 0; background: var(--card); color: var(--texto); font-weight: 700; }
+  .segmento button[aria-pressed=true] { background: #fff; color: var(--secundaria); }
+  .prof-linha { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--card); border: 1px solid var(--borda); border-radius: 10px; padding: 6px 6px 6px 12px; font-weight: 600; min-height: 56px; }
+  .prof-linha span { min-width: 0; overflow-wrap: anywhere; }
+  .foto-previa { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+  .foto-previa img { width: 76px; height: 76px; object-fit: cover; border-radius: 10px; }
+  .detalhes summary { font-weight: 600; font-size: .9rem; color: var(--texto-2); min-height: 32px; cursor: pointer; }
+  .verificacao { font-size: .82rem; color: var(--texto-2); margin: 10px 0 0; }
+  .modal-footer { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+
+  /* Admin */
+  .topo-admin { padding-bottom: 0; }
+  .abas-admin { display: flex; gap: 2px; margin-top: 8px; overflow-x: auto; }
+  .abas-admin button { background: none; border: 0; border-bottom: 3px solid transparent; color: var(--texto-2); font-weight: 600; padding: 10px 14px; min-height: 44px; white-space: nowrap; }
+  .abas-admin button.ativa { color: #fff; border-color: var(--grafico); }
+  .conteudo-admin { padding-bottom: 32px; }
+  .aviso { background: rgba(251,191,36,.15); border: 1px solid var(--atencao); border-radius: var(--raio); padding: 12px 14px; margin-bottom: 14px; font-size: .92rem; }
+  .aviso a { color: var(--atencao); font-weight: 700; }
+  .filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin-bottom: 14px; }
+  .filtros > div { flex: 1 1 130px; max-width: 220px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .kpi { background: var(--card); border-radius: var(--raio); padding: 14px; }
+  .kpi span { display: block; color: var(--texto-2); font-size: .8rem; font-weight: 600; }
+  .kpi strong { display: block; font-size: 1.9rem; font-weight: 800; line-height: 1.2; margin-top: 2px; }
+  .kpi small { color: var(--texto-2); font-size: .74rem; }
+  .dash-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; margin-bottom: 10px; }
+  .painel { background: var(--card); border-radius: var(--raio); padding: 16px; margin-bottom: 10px; min-width: 0; }
+  .dash-grade .painel { margin-bottom: 0; }
+  .painel h2 { font-size: 1.05rem; margin: 0 0 2px; }
+  .painel-sub { color: var(--texto-2); font-size: .82rem; margin-bottom: 14px; }
+  .painel-titulo { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .painel-estreito { max-width: 480px; }
+  .cores { display: flex; gap: 24px; }
+  .logo-envio { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .logo-previa { width: 120px; height: 64px; flex: none; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 10px; padding: 6px; color: #475569; font-size: .75rem; }
+  .logo-previa img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .logo-botoes { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* Gráficos */
+  .barra-linha { display: grid; grid-template-columns: 96px 1fr 104px; align-items: center; gap: 8px; min-height: 30px; font-size: .82rem; }
+  .barra-rotulo { font-weight: 600; font-size: .74rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .barra-trilha { height: 12px; }
+  .barra-valor-mark { height: 100%; background: var(--grafico); border-radius: 0 4px 4px 0; }
+  .barra-numero { text-align: right; color: var(--texto-2); font-size: .76rem; white-space: nowrap; }
+  .barra-numero b { color: var(--texto); }
+  .pilha-rotulo { display: flex; justify-content: space-between; font-size: .84rem; font-weight: 600; margin-top: 10px; }
+  .pilha-rotulo small { color: var(--texto-2); font-weight: 500; }
+  .pilha { display: flex; gap: 2px; height: 14px; margin-top: 4px; }
+  .pilha i { display: block; min-width: 3px; }
+  .pilha i:last-child { border-radius: 0 4px 4px 0; }
+  .legenda { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .76rem; color: var(--texto-2); }
+  .legenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; }
+  .ranking { list-style: none; padding: 0; margin: 0; font-size: .88rem; }
+  .ranking li { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--borda); }
+  .ranking li:last-child { border-bottom: 0; }
+  .ranking small { color: var(--texto-2); }
+
+  /* Tabelas */
+  .tabela { --bs-table-bg: transparent; --bs-table-color: var(--texto); --bs-table-border-color: var(--borda); font-size: .84rem; margin-bottom: 0; }
+  .tabela th { color: var(--texto-2); font-weight: 600; white-space: nowrap; }
+  .tabela td { vertical-align: middle; }
+  .tabela .acoes { text-align: right; white-space: nowrap; }
+  .etiqueta { display: inline-block; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+  .etiqueta.ok { color: var(--ok); } .etiqueta.atencao { color: var(--atencao); } .etiqueta.problema { color: var(--problema); }
+
+  .rel-total { font-size: .92rem; font-weight: 700; margin: 4px 0 10px; }
+  .rel-subtitulo { font-size: .95rem; margin: 18px 0 6px; }
+
+  /* Apresentação */
+  .ap-grade { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 10px; margin-bottom: 10px; }
+  .ap-grade .painel { margin-bottom: 0; }
+  .ap-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .ap-grafico { position: relative; height: 340px; margin-top: 14px; }
+  .ap-grafico .vazio { padding-top: 120px; }
+  .ap-lista { padding: 0; margin: 0 0 12px; list-style: none; counter-reset: s; }
+  .ap-lista li { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--borda); font-size: .86rem; }
+  .ap-lista li > span { flex: 1; min-width: 0; }
+  .ap-lista small { display: block; color: var(--texto-2); }
+  .ap-lista button { min-height: 36px; padding: 2px 9px; }
+  .ap-templates { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .tp-previa { aspect-ratio: 16 / 9; max-width: 340px; border: 1px dashed var(--borda); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--texto-2); overflow: hidden; font-size: .85rem; }
+  .tp-previa img { width: 100%; height: 100%; object-fit: cover; }
+  @media (max-width: 800px) { .ap-grade { grid-template-columns: minmax(0, 1fr); } .ap-campos { grid-template-columns: 1fr; } }
+
+  /* Aparência */
+  .paletas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .paletas button { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 6px 10px; background: var(--card); color: var(--texto); border: 2px solid var(--borda); border-radius: 10px; font-weight: 600; font-size: .88rem; }
+  .paletas button[aria-pressed=true] { border-color: var(--texto); }
+  .paletas i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
+
+  /* Configurações */
+  .cfg-titulo { font-size: 1.25rem; margin: 2px 0 10px; }
+  .cfg-abas { display: flex; gap: 6px; margin-bottom: 12px; }
+  .cfg-abas button { flex: 0 1 140px; min-height: 44px; border: 1px solid var(--borda); background: var(--card); color: var(--texto); border-radius: 10px; font-weight: 600; }
+  .cfg-abas button.ativa { background: var(--primaria-escura); border-color: var(--primaria-escura); color: #fff; }
+
+  /* Reset de marcação */
+  .marcacao { background: var(--card); border: 1px solid var(--borda); border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; }
+  .marcacao-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .marcacao strong { font-size: .92rem; display: block; }
+  .marcacao small { color: var(--texto-2); }
+  .btn-reset { background: #B91C1C; color: #fff; border: 0; }
+  .btn-reset:hover, .btn-reset:focus { background: #991B1B; color: #fff; }
+  .btn-reset:disabled { background: var(--borda); color: var(--texto-2); opacity: 1; }
+  .diagnostico { background: var(--fundo); border-radius: 8px; padding: 10px; font-size: .74rem; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; }
+
+  /* Lanterna */
+  .btn-icone { width: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+  .btn-icone[aria-pressed=true] { background: var(--atencao); border-color: var(--atencao); color: #1f1600; }
+  .video-lanterna { position: fixed; left: 0; bottom: 0; width: 16px; height: 16px; opacity: .01; pointer-events: none; }
+
+  /* Conferência */
+  .cf-chips { margin: 0 0 12px; }
+  .cf-chips button { color: var(--texto); border-color: var(--borda); }
+  .cf-resumo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+  .cf-resumo div { background: var(--card); border-radius: 10px; padding: 10px; text-align: center; font-size: .78rem; color: var(--texto-2); }
+  .cf-resumo strong { display: block; font-size: 1.6rem; line-height: 1.15; color: var(--texto); }
+  .cf-secao { font-size: .95rem; margin: 14px 0 6px; }
+  .cf-item { display: block; width: 100%; text-align: left; background: var(--card); color: var(--texto); border: 1px solid var(--borda); border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; font-size: .86rem; }
+  .cf-item strong { font-size: 1rem; }
+  .cf-item small { display: block; color: var(--texto-2); }
+  .cf-filtro { margin-bottom: 8px; }
+
+  /* Importação */
+  .subtitulo { font-size: .95rem; margin: 16px 0 8px; }
+  .mapa-campos { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+  .imp-status { font-size: .9rem; color: var(--texto-2); }
+  .imp-status.erro { color: #FECACA; }
+  .imp-resultado { background: rgba(52,211,153,.14); border: 1px solid var(--ok); border-radius: 10px; padding: 12px; font-size: .92rem; }
+
+  /* Feedback */
+  .toast-app { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); z-index: 2000; background: #fff; color: #0C2340; font-weight: 600; border-radius: 10px; padding: 11px 16px; box-shadow: 0 8px 22px rgba(0,0,0,.45); max-width: 92vw; font-size: .92rem; }
+  .toast-app.erro { background: #FECACA; color: #5b0e0e; }
+  .carregando { position: fixed; inset: 0; z-index: 3000; background: rgba(18,24,36,.65); display: flex; align-items: center; justify-content: center; color: #fff; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  @media (forced-colors: active) { .sala-status { font-weight: 700; } }
+</style>
+
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<main id="view-login" class="view login">
+  <form id="form-login" class="login-card" autocomplete="off">
+    <div class="marca-logo" data-marca-logo></div>
+    <h1 data-marca-nome>Afya Unigranrio Barra da Tijuca</h1>
+    <p class="login-sub">Ensalamento e ronda de inspeção</p>
+    <label for="login-senha" class="form-label">Senha de acesso</label>
+    <div class="input-group mb-3">
+      <input id="login-senha" type="password" class="form-control form-control-lg" autocomplete="current-password" required>
+      <button id="login-ver" class="btn btn-fantasma" type="button" aria-label="Mostrar senha">Ver</button>
+    </div>
+    <div id="login-erro" class="login-erro" role="alert" hidden></div>
+    <button id="login-entrar" class="btn btn-primario btn-lg w-100" type="submit">Entrar</button>
+  </form>
+</main>
+
+<!-- ============ INSPETOR ============ -->
+<div id="view-inspetor" class="view" hidden>
+  <header class="topo">
+    <div class="topo-linha">
+      <div class="marca-mini"><span class="marca-logo pequeno" data-marca-logo></span><span class="marca-texto" data-marca-nome></span></div>
+      <div class="topo-acoes">
+        <button id="ins-lanterna" class="btn btn-sm btn-fantasma btn-icone" type="button" aria-pressed="false" aria-label="Ligar lanterna" title="Lanterna">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2h8v4l-2 4v11a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V10L8 6z"/><path d="M8 6h8"/><path d="M12 13v2"/></svg>
+        </button>
+        <button id="ins-voltar-admin" class="btn btn-sm btn-fantasma" hidden>Gestão</button>
+        <button class="btn btn-sm btn-fantasma" data-sair>Sair</button>
+      </div>
+    </div>
+    <div class="progresso-texto">
+      <strong id="ins-contador">0 de 0 salas inspecionadas hoje</strong>
+      <span id="ins-pendentes" class="pendentes" hidden></span>
+    </div>
+    <div class="progresso"><div id="ins-barra" class="progresso-valor"></div></div>
+    <nav id="ins-blocos" class="abas-bloco" aria-label="Blocos"></nav>
+    <div id="ins-turnos" class="chips" role="group" aria-label="Turno"></div>
+  </header>
+  <main class="conteudo">
+    <div id="ins-salas" class="grade-salas"></div>
+  </main>
+  <button id="ins-conferir" class="fab fab-esquerda" type="button">Conferir ronda</button>
+  <button id="ins-nova" class="fab" type="button">+ Sala fora da base</button>
+</div>
+
+<!-- ============ ADMINISTRADOR ============ -->
+<div id="view-admin" class="view" hidden>
+  <header class="topo topo-admin">
+    <div class="topo-linha">
+      <div class="marca-mini"><span class="marca-logo pequeno" data-marca-logo></span><span class="marca-texto" data-marca-nome></span></div>
+      <div class="topo-acoes">
+        <button id="adm-config" class="btn btn-sm btn-fantasma btn-icone" type="button" aria-label="Configurações" title="Configurações"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+        <button id="adm-ir-ronda" class="btn btn-sm btn-fantasma">Fazer ronda</button>
+        <button class="btn btn-sm btn-fantasma" data-sair>Sair</button>
+      </div>
+    </div>
+    <nav id="adm-abas" class="abas-admin">
+      <button class="ativa" data-aba="dashboard">Dashboard</button>
+      <button data-aba="relatorio">Relatório</button>
+      <button data-aba="apresentacao">Gráficos e PowerPoint</button>
+      <button data-aba="planilhas">Planilhas</button>
+    </nav>
+  </header>
+  <main class="conteudo conteudo-admin">
+    <div id="adm-alerta-senha" class="aviso" role="alert" hidden>
+      <strong>Senha padrão em uso.</strong> Defina senhas próprias em <a href="#" id="adm-ir-usuarios">Usuários</a> antes de usar o sistema em produção.
+    </div>
+
+    <section id="aba-dashboard" class="aba-admin">
+      <div class="filtros">
+        <div><label class="form-label" for="dash-semestre">Semestre</label><select id="dash-semestre" class="form-select"></select></div>
+        <div><label class="form-label" for="dash-de">De</label><input id="dash-de" type="date" class="form-control"></div>
+        <div><label class="form-label" for="dash-ate">Até</label><input id="dash-ate" type="date" class="form-control"></div>
+        <button id="dash-aplicar" class="btn btn-primario">Atualizar</button>
+      </div>
+      <div id="dash-kpis" class="kpis"></div>
+      <div class="dash-grade">
+        <article class="painel">
+          <h2>Cursos ofensores</h2>
+          <p class="painel-sub">% das rondas com atraso ou sem professor em sala</p>
+          <div id="dash-cursos"></div>
+        </article>
+        <article class="painel">
+          <h2>Análise por turno</h2>
+          <p class="painel-sub">Distribuição das rondas em cada turno</p>
+          <div id="dash-turnos"></div>
+        </article>
+        <article class="painel">
+          <h2>Professores com mais faltas</h2>
+          <p class="painel-sub">Ausência registrada, sem contar atrasos</p>
+          <div id="dash-professores"></div>
+        </article>
+      </div>
+      <article class="painel">
+        <h2>Últimas rondas</h2>
+        <div class="table-responsive"><table class="table tabela"><thead><tr><th>Data</th><th>Hora</th><th>Local</th><th>Situação</th><th>Curso</th><th>Professor</th><th>Inspetor</th><th>Observação</th><th>Foto</th></tr></thead><tbody id="dash-recentes"></tbody></table></div>
+      </article>
+    </section>
+
+    <section id="aba-relatorio" class="aba-admin" hidden>
+      <article class="painel">
+        <h2>Relatório de rondas</h2>
+        <p class="painel-sub">Tudo o que a equipe registrou no período, com o nome de quem fez cada inspeção.</p>
+        <form id="form-relatorio" class="filtros">
+          <div><label class="form-label" for="rel-de">De</label><input id="rel-de" type="date" class="form-control" required></div>
+          <div><label class="form-label" for="rel-ate">Até</label><input id="rel-ate" type="date" class="form-control" required></div>
+          <div><label class="form-label" for="rel-colaborador">Colaborador</label><select id="rel-colaborador" class="form-select"></select></div>
+          <button class="btn btn-primario" type="submit">Gerar relatório</button>
+          <button id="rel-pdf" class="btn btn-secundario" type="button" disabled>Gerar PDF</button>
+          <button id="rel-excel" class="btn btn-secundario" type="button" disabled>Baixar Excel</button>
+          <a id="rel-baixar" class="btn btn-fantasma" hidden>Baixar PDF</a>
+        </form>
+        <div id="rel-saida"></div>
+      </article>
+    </section>
+
+    <section id="aba-apresentacao" class="aba-admin" hidden>
+      <article class="painel">
+        <h2>Período da análise</h2>
+        <p class="painel-sub">Os gráficos usam todas as rondas registradas neste período.</p>
+        <form id="form-apres" class="filtros mb-0">
+          <div><label class="form-label" for="ap-de">De</label><input id="ap-de" type="date" class="form-control" required></div>
+          <div><label class="form-label" for="ap-ate">Até</label><input id="ap-ate" type="date" class="form-control" required></div>
+          <button class="btn btn-primario" type="submit">Carregar dados</button>
+          <span id="ap-total" class="texto-suave"></span>
+        </form>
+      </article>
+      <div class="ap-grade">
+        <article class="painel">
+          <h2>Montar gráfico</h2>
+          <div class="ap-campos">
+            <div><label class="form-label" for="ap-indicador">Indicador</label><select id="ap-indicador" class="form-select"></select></div>
+            <div><label class="form-label" for="ap-modelo">Modelo</label><select id="ap-modelo" class="form-select"></select></div>
+            <div><label class="form-label" for="ap-paleta">Cores</label><select id="ap-paleta" class="form-select"></select></div>
+            <div><label class="form-label" for="ap-titulo">Título do slide</label><input id="ap-titulo" class="form-control" maxlength="90"></div>
+          </div>
+          <div class="ap-grafico"><canvas id="ap-canvas" aria-label="Prévia do gráfico" role="img"></canvas><p id="ap-vazio" class="vazio" hidden>Sem dados para este indicador no período.</p></div>
+          <button id="ap-adicionar" class="btn btn-primario w-100 mt-2" type="button" disabled>Adicionar à apresentação</button>
+        </article>
+        <article class="painel">
+          <h2>Apresentação</h2>
+          <div class="mb-2"><label class="form-label" for="ap-nome">Título da capa</label><input id="ap-nome" class="form-control" maxlength="90" value="Reunião de Resultados"></div>
+          <div class="mb-2"><label class="form-label" for="ap-sub">Subtítulo da capa</label><input id="ap-sub" class="form-control" maxlength="120" value="Ronda de Inspeção e Ensalamento"></div>
+          <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="ap-kpis" checked><label class="form-check-label" for="ap-kpis">Incluir slide de indicadores gerais</label></div>
+          <h3 class="rel-subtitulo">Slides de gráficos</h3>
+          <ol id="ap-lista" class="ap-lista"></ol>
+          <button id="ap-baixar" class="btn btn-primario w-100" type="button" disabled>Baixar PowerPoint</button>
+        </article>
+      </div>
+      <article class="painel">
+        <h2>Template da empresa</h2>
+        <p class="painel-sub">No PowerPoint, deixe a capa e o slide de conteúdo sem textos de exemplo e use Arquivo &gt; Exportar &gt; PNG ou JPEG, em formato 16:9. O título e os gráficos entram por cima e continuam editáveis.</p>
+        <div class="ap-templates">
+          <div class="ap-template">
+            <span class="form-label d-block">Capa</span>
+            <div id="tp-previa-capa" class="tp-previa">Sem template</div>
+            <input id="tp-arq-capa" type="file" accept="image/png,image/jpeg" hidden>
+            <div class="logo-botoes mt-2"><button data-tp-enviar="capa" class="btn btn-secundario" type="button">Enviar capa</button><button data-tp-remover="capa" class="btn btn-fantasma" type="button" hidden>Remover</button></div>
+          </div>
+          <div class="ap-template">
+            <span class="form-label d-block">Slide de conteúdo</span>
+            <div id="tp-previa-conteudo" class="tp-previa">Sem template</div>
+            <input id="tp-arq-conteudo" type="file" accept="image/png,image/jpeg" hidden>
+            <div class="logo-botoes mt-2"><button data-tp-enviar="conteudo" class="btn btn-secundario" type="button">Enviar conteúdo</button><button data-tp-remover="conteudo" class="btn btn-fantasma" type="button" hidden>Remover</button></div>
+          </div>
+        </div>
+        <div class="cores mt-3">
+          <div><label class="form-label" for="tp-cor-capa">Texto da capa</label><input id="tp-cor-capa" type="color" class="form-control form-control-color"></div>
+          <div><label class="form-label" for="tp-cor-conteudo">Títulos dos slides</label><input id="tp-cor-conteudo" type="color" class="form-control form-control-color"></div>
+        </div>
+      </article>
+    </section>
+
+    <section id="aba-planilhas" class="aba-admin" hidden>
+      <article class="painel">
+        <h2>Semestre vigente</h2>
+        <p class="painel-sub">Define qual base os inspetores veem e em qual semestre as rondas são registradas.</p>
+        <div class="filtros">
+          <div><label class="form-label" for="pl-semestre-ativo">Semestre</label><select id="pl-semestre-ativo" class="form-select"></select></div>
+          <button id="pl-salvar-ativo" class="btn btn-secundario">Definir como vigente</button>
+          <button id="pl-importar" class="btn btn-primario">Importar planilha</button>
+          <button id="pl-excel" class="btn btn-secundario" type="button">Baixar base em Excel</button>
+          <a id="pl-abrir-bd" class="btn btn-fantasma" target="_blank" rel="noopener">Abrir banco de dados</a>
+        </div>
+      </article>
+      <article class="painel">
+        <h2>Histórico de importações</h2>
+        <div class="table-responsive"><table class="table tabela"><thead><tr><th>Data</th><th>Semestre</th><th>Arquivo</th><th>Lidas</th><th>Novas</th><th>Duplicadas</th><th>Ignoradas</th><th>Por</th></tr></thead><tbody id="pl-historico"></tbody></table></div>
+      </article>
+    </section>
+
+    <section id="aba-config" class="aba-admin" hidden>
+      <h2 class="cfg-titulo">Configurações</h2>
+      <nav id="cfg-abas" class="cfg-abas" aria-label="Configurações">
+        <button type="button" class="ativa" data-cfg="marca">Marca</button>
+        <button type="button" data-cfg="usuarios">Usuários</button>
+        <button type="button" data-cfg="aparencia">Aparência</button>
+      </nav>
+      <div id="cfg-marca" class="cfg-painel">
+      <article class="painel painel-estreito">
+        <h2>Marca da unidade</h2>
+        <form id="form-marca">
+          <div class="mb-3"><label class="form-label" for="mc-nome">Título da unidade</label><input id="mc-nome" class="form-control" maxlength="80" required></div>
+          <div class="mb-3">
+            <span class="form-label d-block">Logo</span>
+            <div class="logo-envio">
+              <div id="mc-logo-previa" class="logo-previa"></div>
+              <div class="logo-botoes">
+                <input id="mc-logo-arquivo" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+                <button id="mc-logo-enviar" type="button" class="btn btn-secundario">Enviar imagem</button>
+                <button id="mc-logo-remover" type="button" class="btn btn-fantasma" hidden>Remover</button>
+              </div>
+            </div>
+            <small class="texto-suave">PNG com fundo transparente fica melhor. A imagem é salva na hora.</small>
+          </div>
+          <div class="mb-3"><label class="form-label" for="mc-logo">Ou URL do logo (https)</label><input id="mc-logo" type="url" class="form-control" placeholder="https://..."><small class="texto-suave">Usada apenas quando não há imagem enviada.</small></div>
+          <div class="cores">
+            <div><label class="form-label" for="mc-primaria">Cor primária</label><input id="mc-primaria" type="color" class="form-control form-control-color"></div>
+            <div><label class="form-label" for="mc-secundaria">Cor secundária</label><input id="mc-secundaria" type="color" class="form-control form-control-color"></div>
+          </div>
+          <button class="btn btn-primario w-100 mt-3" type="submit">Salvar marca</button>
+        </form>
+      </article>
+          </div>
+      <div id="cfg-usuarios" class="cfg-painel" hidden>
+      <article class="painel">
+        <div class="painel-titulo"><h2>Usuários</h2><button id="us-novo" class="btn btn-primario">Novo usuário</button></div>
+        <p class="painel-sub">Crie uma senha para cada inspetor: é ela que identifica o autor de cada ronda.</p>
+        <div class="table-responsive"><table class="table tabela"><thead><tr><th>Nome</th><th>Perfil</th><th>Status</th><th></th></tr></thead><tbody id="us-lista"></tbody></table></div>
+      </article>
+          </div>
+      <div id="cfg-aparencia" class="cfg-painel" hidden>
+        <article class="painel painel-estreito">
+          <h2>Aparência do painel</h2>
+          <span class="form-label d-block mt-2" id="lb-tema">Modo</span>
+          <div class="segmento mb-3" id="ap-tema" role="group" aria-labelledby="lb-tema"><button type="button" data-valor="escuro" aria-pressed="false">Escuro</button><button type="button" data-valor="claro" aria-pressed="false">Claro</button></div>
+          <span class="form-label d-block" id="lb-paleta">Paleta de cores</span>
+          <div id="ap-paletas" class="paletas" role="group" aria-labelledby="lb-paleta"></div>
+          <small class="texto-suave d-block mt-2">Vale só para o painel do gestor neste aparelho.</small>
+        </article>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ============ MODAL: INSPEÇÃO ============ -->
+<div class="modal fade" id="modal-inspecao" tabindex="-1" aria-labelledby="ins-titulo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+    <form id="form-inspecao" class="modal-content" novalidate>
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="ins-titulo">Sala</h2>
+          <div id="ins-contexto" class="modal-contexto"></div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <div id="f-marcacao" class="marcacao" hidden>
+          <div class="marcacao-topo">
+            <div><strong id="f-marc-texto"></strong><small id="f-marc-info"></small></div>
+            <button id="f-resetar" type="button" class="btn btn-sm btn-fantasma">Resetar</button>
+          </div>
+          <div id="f-reset-painel" class="mt-2" hidden>
+            <label class="form-label" for="f-reset-motivo">Motivo do reset</label>
+            <select id="f-reset-motivo" class="form-select">
+              <option value="">Selecione</option>
+              <option>Marquei a sala errada</option>
+              <option>Marquei a situação errada</option>
+              <option>Marquei o horário errado</option>
+              <option>Marquei o professor errado</option>
+              <option value="__outro">Outro motivo</option>
+            </select>
+            <input id="f-reset-outro" class="form-control mt-2" maxlength="300" placeholder="Descreva o motivo" aria-label="Descreva o motivo" autocomplete="off" hidden>
+            <button id="f-reset-confirmar" type="button" class="btn btn-reset w-100 mt-2" disabled>Confirmar reset</button>
+            <small class="texto-suave d-block mt-1">A marcação sai da contagem e fica registrada no relatório.</small>
+          </div>
+        </div>
+        <div id="ins-campos-sala" class="row g-2 mb-3" hidden>
+          <div class="col-7"><label class="form-label" for="f-sala">Sala</label><input id="f-sala" class="form-control" list="f-salas-lista" maxlength="60" autocomplete="off"><datalist id="f-salas-lista"></datalist></div>
+          <div class="col-5"><label class="form-label" for="f-bloco">Bloco</label><select id="f-bloco" class="form-select"></select></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="f-horario">Horário da aula</label>
+          <select id="f-horario" class="form-select form-select-lg"></select>
+        </div>
+        <div class="mb-3">
+          <span class="form-label d-block">Professor</span>
+          <div class="prof-linha">
+            <span id="f-prof-nome"></span>
+            <button id="f-prof-editar" type="button" class="btn btn-fantasma btn-icone" aria-label="Trocar professor" aria-expanded="false" title="Trocar professor"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+          </div>
+          <div id="f-prof-troca" class="mt-2" hidden>
+            <label class="form-label" for="f-prof-lista">Professores de hoje</label>
+            <select id="f-prof-lista" class="form-select"></select>
+            <input id="f-prof-outro" class="form-control mt-2" maxlength="120" placeholder="Digite o nome do professor" aria-label="Nome do professor" autocomplete="off" hidden>
+          </div>
+        </div>
+        <fieldset class="mb-3">
+          <legend class="form-label">Situação</legend>
+          <div id="f-situacoes" class="situacoes"></div>
+        </fieldset>
+        <div class="row g-2 mb-3">
+          <div class="col-6"><span class="form-label d-block" id="lb-prof">Professor em sala</span><div class="segmento" id="f-prof" role="group" aria-labelledby="lb-prof"></div></div>
+          <div class="col-6"><span class="form-label d-block" id="lb-alunos">Alunos em sala</span><div class="segmento" id="f-alunos" role="group" aria-labelledby="lb-alunos"></div></div>
+        </div>
+        <div class="mb-3">
+          <input id="f-foto" type="file" accept="image/*" hidden>
+          <button id="f-foto-btn" type="button" class="btn btn-foto w-100">Tirar ou anexar foto</button>
+          <div id="f-foto-previa" class="foto-previa" hidden>
+            <img alt="Prévia da foto anexada">
+            <button id="f-foto-remover" type="button" class="btn btn-sm btn-fantasma">Remover foto</button>
+          </div>
+        </div>
+        <div class="mb-3"><label class="form-label" for="f-obs">Observação</label><textarea id="f-obs" class="form-control" rows="2" maxlength="1000"></textarea></div>
+        <details id="f-detalhes" class="detalhes">
+          <summary>Dados da aula</summary>
+          <div class="mt-2"><label class="form-label" for="f-curso">Curso</label><select id="f-curso" class="form-select"></select></div>
+          <input id="f-professor" type="hidden">
+          <div class="mt-2"><label class="form-label" for="f-disciplina">Disciplina</label><input id="f-disciplina" class="form-control" maxlength="160"></div>
+        </details>
+        <p class="verificacao">Verificação: <strong id="f-relogio">--:--:--</strong></p>
+      </div>
+      <div class="modal-footer">
+        <button id="f-salvar" type="submit" class="btn btn-primario btn-lg w-100" disabled>Salvar inspeção</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ MODAL: IMPORTAÇÃO ============ -->
+<div class="modal fade" id="modal-importar" tabindex="-1" aria-labelledby="imp-titulo" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
+    <div class="modal-content">
+      <div class="modal-header"><h2 class="modal-title" id="imp-titulo">Importar planilha</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+      <div class="modal-body">
+        <div class="row g-2 mb-3">
+          <div class="col-sm-4"><label class="form-label" for="imp-semestre">Ano e semestre</label><input id="imp-semestre" class="form-control" placeholder="2026.2" maxlength="6"></div>
+          <div class="col-sm-8"><label class="form-label" for="imp-arquivo">Arquivo (CSV ou Excel)</label><input id="imp-arquivo" type="file" class="form-control" accept=".csv,.tsv,.txt,.xls,.xlsx"></div>
+        </div>
+        <div id="imp-status" class="imp-status" role="status"></div>
+        <div id="imp-mapa" hidden>
+          <h3 class="subtitulo">Confira as colunas reconhecidas</h3>
+          <div id="imp-campos" class="mapa-campos"></div>
+          <h3 class="subtitulo">Primeiras linhas</h3>
+          <div class="table-responsive"><table class="table tabela"><thead id="imp-amostra-cab"></thead><tbody id="imp-amostra"></tbody></table></div>
+          <div class="form-check mt-2"><input class="form-check-input" type="checkbox" id="imp-ativo" checked><label class="form-check-label" for="imp-ativo">Tornar este o semestre vigente</label></div>
+        </div>
+        <div id="imp-resultado" class="imp-resultado" hidden></div>
+      </div>
+      <div class="modal-footer"><button id="imp-confirmar" class="btn btn-primario" disabled>Importar dados</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: USUÁRIO ============ -->
+<div class="modal fade" id="modal-usuario" tabindex="-1" aria-labelledby="us-titulo" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="form-usuario" class="modal-content">
+      <div class="modal-header"><h2 class="modal-title" id="us-titulo">Usuário</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="us-id">
+        <div class="mb-3"><label class="form-label" for="us-nome">Nome</label><input id="us-nome" class="form-control" maxlength="80" required></div>
+        <div class="mb-3"><label class="form-label" for="us-perfil">Perfil</label><select id="us-perfil" class="form-select"><option value="INSPETOR">Inspetor de Ronda</option><option value="ADMIN">Administrador</option></select></div>
+        <div class="mb-1"><label class="form-label" for="us-senha">Senha</label><input id="us-senha" type="password" class="form-control" minlength="8" autocomplete="new-password"></div>
+        <small id="us-ajuda" class="texto-suave">Mínimo de 8 caracteres.</small>
+      </div>
+      <div class="modal-footer"><button class="btn btn-primario w-100" type="submit">Salvar</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ MODAL: CONFERÊNCIA ============ -->
+<div class="modal fade" id="modal-conferencia" tabindex="-1" aria-labelledby="cf-titulo" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div><h2 class="modal-title" id="cf-titulo">Conferência da ronda</h2><div id="cf-contexto" class="modal-contexto"></div></div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <div id="cf-turnos" class="chips cf-chips" role="group" aria-label="Turno"></div>
+        <div id="cf-resumo" class="cf-resumo"></div>
+        <div id="cf-corpo"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: DIAGNÓSTICO DA LANTERNA ============ -->
+<div class="modal fade" id="modal-lanterna" tabindex="-1" aria-labelledby="ln-titulo" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h2 class="modal-title" id="ln-titulo">Lanterna não ligou</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+      <div class="modal-body">
+        <p id="ln-mensagem"></p>
+        <pre id="ln-diagnostico" class="diagnostico"></pre>
+        <button id="ln-copiar" type="button" class="btn btn-secundario w-100">Copiar diagnóstico</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: FOTO ============ -->
+<div class="modal fade" id="modal-foto" tabindex="-1" aria-labelledby="fo-titulo" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h2 class="modal-title" id="fo-titulo">Foto da inspeção</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button></div>
+      <div class="modal-body text-center"><div id="fo-corpo">Carregando…</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast-app" role="status" aria-live="polite" hidden></div>
+<div id="carregando" class="carregando" hidden><div class="spinner-border" role="status"><span class="visually-hidden">Carregando</span></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>window.AFYA_API_URL = "https://script.google.com/macros/s/AKfycbxADc1z3GsAa5l6jY8o8mfz9A6u5fpQ_rWe3bT8fnnl-22xnYvv36f16lBOOJJ0uzPqFg/exec";</script>
+<script>
+/* Cliente · Vanilla JS. Todo dado externo passa por esc() antes de ir para o HTML. */
+(function () {
+  'use strict';
+
+  const SITUACOES = [
+    { valor: 'AULA NORMAL / OK', titulo: 'Aula normal / OK', nivel: 'ok', prof: 'SIM', alunos: 'SIM' },
+    { valor: 'ATRASADO', titulo: 'Atrasado', nivel: 'atencao', prof: 'NÃO', alunos: 'SIM' },
+    { valor: 'ENSALADO S/ AULA (NO SISTEMA, FORA DO FISICO)', titulo: 'Ensalado s/ aula', sub: 'No sistema, fora do físico', nivel: 'problema', prof: 'NÃO', alunos: 'NÃO' },
+    { valor: 'NÃO ENSALADO (FORA DO SISTEMA)', titulo: 'Não ensalado', sub: 'Fora do sistema', nivel: 'problema', prof: 'SIM', alunos: 'SIM' }
+  ];
+  const BLOCOS = ['TÉRREO', 'BLOCO 1', 'BLOCO 2'];
+  const SEM_BLOCO = 'SEM BLOCO';
+  const CURSOS = ['MEDICINA', 'ODONTOLOGIA', 'BIOMEDICINA', 'PSICOLOGIA', 'ENFERMAGEM', 'OUTROS'];
+  const TURNOS = ['Manhã', 'Tarde', 'Noite', 'Todos'];
+  const SHEETJS = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+  const CHAVE_SESSAO = 'afya_ronda_sessao';
+  const PPTXGEN = 'https://cdn.jsdelivr.net/npm/pptxgenjs@4.0.1/dist/pptxgen.bundle.js';
+  const CHARTJS = 'https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js';
+  const CORES_TURNO = { ok: 'var(--ok)', atraso: 'var(--atencao)', semProf: 'var(--problema)', outros: '#94A3B8' };
+  const PALETAS_GESTOR = {
+    marca: { nome: 'Marca da unidade' },
+    azul: { nome: 'Azul', acento: '#1D4ED8', claro: '#60A5FA', fundo: '#0F2A5F' },
+    verde: { nome: 'Verde', acento: '#047857', claro: '#34D399', fundo: '#064E3B' },
+    roxo: { nome: 'Roxo', acento: '#6D28D9', claro: '#A78BFA', fundo: '#2E1065' },
+    laranja: { nome: 'Laranja', acento: '#C2410C', claro: '#FB923C', fundo: '#431407' },
+    vinho: { nome: 'Vinho', acento: '#9F1239', claro: '#FB7185', fundo: '#4C0519' },
+    grafite: { nome: 'Grafite', acento: '#475569', claro: '#94A3B8', fundo: '#0F172A' }
+  };
+  const PALETAS_GRAFICO = {
+    afya: { nome: 'Afya', cores: ['#D81B60', '#2563EB', '#F59E0B', '#059669', '#9333EA', '#0891B2'] },
+    vibrante: { nome: 'Vibrante', cores: ['#E11D48', '#2563EB', '#F59E0B', '#059669', '#9333EA', '#0891B2'] },
+    oceano: { nome: 'Oceano', cores: ['#1D6FD1', '#F59E0B', '#0D9F9E', '#7C3AED', '#DB2777', '#65A30D'] },
+    terra: { nome: 'Terra', cores: ['#C2410C', '#0F9D8A', '#CA8A04', '#7C5CBF', '#BE185D', '#3B82C4'] },
+    acessivel: { nome: 'Alto contraste', cores: ['#0072B2', '#E69F00', '#009E73', '#D55E00', '#56B4E9', '#CC79A7'] }
+  };
+  const MODELOS = {
+    colunas: { nome: 'Colunas', chartjs: 'bar' },
+    barras: { nome: 'Barras horizontais', chartjs: 'bar', horizontal: true },
+    colunas_emp: { nome: 'Colunas empilhadas', chartjs: 'bar', empilhado: true },
+    barras_emp: { nome: 'Barras empilhadas', chartjs: 'bar', horizontal: true, empilhado: true },
+    linha: { nome: 'Linha', chartjs: 'line', linha: true },
+    area: { nome: 'Área', chartjs: 'line', linha: true, area: true },
+    pizza: { nome: 'Pizza', chartjs: 'pie', circular: true },
+    rosca: { nome: 'Rosca', chartjs: 'doughnut', circular: true }
+  };
+
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => Array.from(document.querySelectorAll(s));
+  const esc = (v) => String(v === null || v === undefined ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  const estado = {
+    token: null, perfil: null, nome: '', config: null,
+    painel: null, bloco: BLOCOS[0], turno: 'Todos',
+    fila: [], enviando: false,
+    form: null, foto: null,
+    admin: null, importacao: null, relatorio: null, relatorioDados: null, pdfUrl: null,
+    view: 'view-login', confMinhas: false,
+    apres: { dados: null, itens: [], templates: null, chart: null }
+  };
+
+  /* ---------- Utilidades ---------- */
+
+  function api(funcao, ...args) {
+    if (!window.google || !google.script) {
+      // Versão instalável: fala com o Apps Script sem usar as contas Google do aparelho.
+      return fetch(window.AFYA_API_URL, { method: 'POST', credentials: 'omit', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: funcao, args }) })
+        .then((r) => r.json())
+        .then((r) => { if (!r.ok) throw new Error(r.erro); return r.resultado; });
+    }
+    return new Promise((resolve, reject) => {
+      google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[funcao](...args);
+    });
+  }
+
+  function msgErro(e) { return String((e && e.message) || e || 'Erro inesperado.').replace(/^(Error:\s*)?(VALIDACAO:\s*)?/, ''); }
+  const ehValidacao = (e) => /VALIDACAO:|Acesso restrito/.test(String((e && e.message) || e));
+  const ehSessao = (e) => /SESSAO_EXPIRADA/.test(String((e && e.message) || e));
+
+  let timerToast;
+  function toast(texto, erro) {
+    const t = $('#toast');
+    t.textContent = texto; t.className = 'toast-app' + (erro ? ' erro' : ''); t.hidden = false;
+    clearTimeout(timerToast);
+    timerToast = setTimeout(() => { t.hidden = true; }, erro ? 5000 : 2200);
+  }
+
+  function carregando(ligado) { $('#carregando').hidden = !ligado; }
+
+  function trataErro(e) {
+    if (ehSessao(e)) { toast('Sessão expirada. Entre novamente.', true); sair(false); return; }
+    toast(msgErro(e), true);
+  }
+
+  function mostrarView(id) { estado.view = id; $$('.view').forEach((v) => { v.hidden = v.id !== id; }); aplicarAparencia(); window.scrollTo(0, 0); }
+
+  function modal(id) { return bootstrap.Modal.getOrCreateInstance(document.getElementById(id)); }
+
+  function novoId() {
+    const a = new Uint8Array(12); crypto.getRandomValues(a);
+    return Array.from(a, (b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function guardar(s) { try { s ? localStorage.setItem(CHAVE_SESSAO, s) : localStorage.removeItem(CHAVE_SESSAO); } catch (e) { /* armazenamento indisponível */ } }
+  function lerGuardado() { try { return localStorage.getItem(CHAVE_SESSAO); } catch (e) { return null; } }
+
+  /* ---------- Marca ---------- */
+
+  function aplicarMarca(c) {
+    estado.config = Object.assign({}, estado.config, c);
+    aplicarAparencia();
+    $$('[data-marca-nome]').forEach((e) => { e.textContent = c.nomeUnidade; });
+    $$('[data-marca-logo]').forEach((e) => {
+      e.textContent = '';
+      e.classList.remove('tem-imagem');
+      const origem = c.logoImagem || c.logoUrl;
+      if (origem) {
+        const i = new Image(); i.alt = 'Logo'; i.src = origem;
+        i.onerror = () => { e.classList.remove('tem-imagem'); e.textContent = 'A'; };
+        e.classList.add('tem-imagem');
+        e.appendChild(i);
+      } else { e.textContent = 'A'; }
+    });
+  }
+
+  function desenharLogoAdmin(c) {
+    const previa = $('#mc-logo-previa');
+    previa.textContent = '';
+    if (c.logoImagem) { const i = new Image(); i.alt = 'Logo atual'; i.src = c.logoImagem; previa.appendChild(i); }
+    else previa.textContent = 'Sem imagem';
+    $('#mc-logo-remover').hidden = !c.logoImagem;
+  }
+
+  /** Reduz o logo no aparelho até caber no limite de armazenamento, mantendo a transparência. */
+  function prepararLogo(arquivo) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(arquivo), img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const larg = img.naturalWidth || 400, alt = img.naturalHeight || 400;
+        for (const lado of [480, 400, 320, 240, 160]) {
+          const k = Math.min(1, lado / Math.max(larg, alt));
+          const c = document.createElement('canvas');
+          c.width = Math.max(1, Math.round(larg * k)); c.height = Math.max(1, Math.round(alt * k));
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          const opcoes = [c.toDataURL('image/png'), c.toDataURL('image/webp', 0.85)];
+          const cabe = opcoes.find((d) => d.length <= 100000);
+          if (cabe) { resolve(cabe); return; }
+        }
+        reject(new Error('Não foi possível reduzir esta imagem. Tente outro arquivo.'));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Não foi possível ler esta imagem.')); };
+      img.src = url;
+    });
+  }
+
+  /* ---------- Sessão ---------- */
+
+  function entrarNoApp(r) {
+    estado.token = r.token; estado.perfil = r.perfil; estado.nome = r.nome;
+    guardar(r.token);
+    aplicarMarca(r.config);
+    $('#ins-voltar-admin').hidden = r.perfil !== 'ADMIN';
+    if (r.perfil === 'ADMIN') {
+      if (r.senhaPadrao) $('#adm-alerta-senha').hidden = false;
+      abrirAdmin();
+    } else {
+      abrirInspetor();
+    }
+    enviarFila(); // envia o que ficou pendente caso a sessão tenha expirado durante a ronda
+  }
+
+  async function login(ev) {
+    ev.preventDefault();
+    const erro = $('#login-erro'), btn = $('#login-entrar');
+    erro.hidden = true; btn.disabled = true; btn.textContent = 'Entrando…';
+    try {
+      const r = await api('autenticarUsuario', $('#login-senha').value);
+      $('#login-senha').value = '';
+      entrarNoApp(r);
+    } catch (e) {
+      erro.textContent = msgErro(e); erro.hidden = false;
+    } finally { btn.disabled = false; btn.textContent = 'Entrar'; }
+  }
+
+  function sair(avisarServidor) {
+    if (avisarServidor !== false && estado.fila.length && !confirm('Há inspeções pendentes de envio que serão perdidas. Sair mesmo assim?')) return;
+    if (avisarServidor !== false && estado.token) api('encerrarSessao', estado.token).catch(() => {});
+    if (avisarServidor !== false) estado.fila = [];
+    estado.token = null; guardar(null);
+    pararAtualizacao();
+    $('#adm-alerta-senha').hidden = true;
+    mostrarView('view-login');
+  }
+
+  /* ---------- Inspetor ---------- */
+
+  let timerPainel = null;
+  function pararAtualizacao() { clearInterval(timerPainel); timerPainel = null; }
+
+  function turnoAgora() { const h = new Date().getHours(); return h < 12 ? 'Manhã' : h < 18 ? 'Tarde' : 'Noite'; }
+  const nivelDe = (situacao) => (SITUACOES.find((s) => s.valor === situacao) || {}).nivel;
+  const tituloDe = (situacao) => (SITUACOES.find((s) => s.valor === situacao) || { titulo: situacao }).titulo;
+
+  function statusInspecao(i) {
+    if (!i) return { nivel: 'pendente', texto: 'Pendente' };
+    let nivel = nivelDe(i.situacao);
+    if (nivel === 'ok' && i.professorEmSala === 'NÃO') nivel = 'problema';
+    const marca = { ok: '✓', atencao: '!', problema: '✕' }[nivel];
+    return { nivel: nivel === 'ok' ? 'ok' : nivel, texto: `${marca} ${tituloDe(i.situacao)} · ${String(i.hora).slice(0, 5)}` };
+  }
+
+  async function abrirInspetor() {
+    mostrarView('view-inspetor');
+    estado.turno = turnoAgora();
+    desenharTurnos();
+    if (!estado.painel) $('#ins-salas').innerHTML = '<p class="vazio">Carregando salas…</p>';
+    await atualizarPainel();
+    pararAtualizacao();
+    timerPainel = setInterval(() => { if (!document.hidden) { atualizarPainel(); enviarFila(); } }, 60000);
+  }
+
+  async function atualizarPainel() {
+    try {
+      estado.painel = await api('obterPainelInspetor', estado.token);
+      desenharInspetor();
+    } catch (e) {
+      if (ehSessao(e)) trataErro(e);
+      else if (!estado.painel) $('#ins-salas').innerHTML = `<p class="vazio">Não foi possível carregar. Verifique a conexão.</p>`;
+    }
+  }
+
+  function chaveSala(bloco, sala) { return `${bloco}|${sala}`.toUpperCase(); }
+
+  /** Reúne salas da base e salas registradas fora da base, com a última vistoria do turno. */
+  function salasVisiveis() {
+    const p = estado.painel; if (!p) return [];
+    const todas = new Map();
+    p.salas.forEach((s) => todas.set(s.id, { id: s.id, bloco: s.bloco, sala: s.sala, aulas: s.aulas, foraBase: false }));
+    const inspecoes = p.inspecoes.concat(estado.fila.map((f) => f.previa));
+    const noTurno = (t) => estado.turno === 'Todos' || t === estado.turno;
+    const ultima = new Map();
+    inspecoes.forEach((i) => {
+      if (!noTurno(i.turno)) return;
+      const id = chaveSala(i.bloco, i.sala);
+      if (!todas.has(id)) todas.set(id, { id, bloco: i.bloco, sala: i.sala, aulas: [], foraBase: true });
+      ultima.set(id, i);
+    });
+    return Array.from(todas.values())
+      .filter((s) => s.foraBase || s.aulas.some((a) => noTurno(a.turno) || !a.turno))
+      .map((s) => Object.assign(s, { inspecao: ultima.get(s.id) }))
+      .sort((a, b) => String(a.sala).localeCompare(String(b.sala), 'pt-BR', { numeric: true }));
+  }
+
+  /** Aula mais relevante: a que está em andamento ou a próxima dentro do turno escolhido. */
+  function aulaDestaque(s) {
+    const aulas = s.aulas.filter((a) => estado.turno === 'Todos' || a.turno === estado.turno || !a.turno);
+    if (!aulas.length) return null;
+    const d = new Date();
+    const agora = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    return aulas.slice().reverse().find((a) => a.horario && a.horario.slice(0, 5) <= agora) || aulas[0];
+  }
+
+  function desenharTurnos() {
+    $('#ins-turnos').innerHTML = TURNOS.map((t) => `<button type="button" data-turno="${t}" class="${t === estado.turno ? 'ativa' : ''}" aria-pressed="${t === estado.turno}">${t}</button>`).join('');
+  }
+
+  function desenharInspetor() {
+    const salas = salasVisiveis();
+    const blocos = BLOCOS.slice();
+    if (salas.some((s) => s.bloco === SEM_BLOCO)) blocos.push(SEM_BLOCO);
+    if (blocos.indexOf(estado.bloco) < 0) estado.bloco = BLOCOS[0];
+
+    const naBase = salas.filter((s) => !s.foraBase);
+    const feitas = naBase.filter((s) => s.inspecao).length;
+    $('#ins-contador').textContent = `${feitas} de ${naBase.length} salas inspecionadas hoje`;
+    $('#ins-barra').style.width = naBase.length ? `${(feitas / naBase.length) * 100}%` : '0';
+    const pend = $('#ins-pendentes');
+    pend.hidden = !estado.fila.length;
+    pend.textContent = `${estado.fila.length} aguardando sinal`;
+
+    $('#ins-blocos').innerHTML = blocos.map((b) => {
+      const doBloco = salas.filter((s) => s.bloco === b);
+      const ok = doBloco.filter((s) => s.inspecao).length;
+      return `<button type="button" data-bloco="${esc(b)}" class="${b === estado.bloco ? 'ativa' : ''}">${esc(b)}<small>${ok}/${doBloco.length}</small></button>`;
+    }).join('');
+
+    const lista = salas.filter((s) => s.bloco === estado.bloco);
+    const alvo = $('#ins-salas');
+    if (!lista.length) {
+      const motivo = estado.painel.salas.length ? 'Nenhuma aula neste bloco e turno.' : 'Nenhuma aula na base para hoje.';
+      alvo.innerHTML = `<p class="vazio">${motivo}</p>`;
+      return;
+    }
+    alvo.innerHTML = lista.map((s) => {
+      const a = aulaDestaque(s) || {};
+      const st = statusInspecao(s.inspecao);
+      return `<button type="button" class="sala-card" data-sala-id="${esc(s.id)}" data-status="${st.nivel}">
+        <span class="sala-nome">${esc(s.sala)}</span>
+        <span class="sala-info">${esc(a.horario || (s.foraBase ? 'Fora da base' : 'Sem horário'))}</span>
+        <span class="sala-info">${esc(a.professor || '')}</span>
+        <span class="sala-info">${esc(a.disciplina || '')}</span>
+        <span class="sala-status">${esc(st.texto)}</span>
+      </button>`;
+    }).join('');
+  }
+
+  /* ---------- Formulário de inspeção ---------- */
+
+  function opcoesHorario(aulas) {
+    const daBase = Array.from(new Set(aulas.map((a) => a.horario).filter(Boolean)));
+    const faixas = [];
+    for (let h = 8; h <= 22; h++) faixas.push(String(h).padStart(2, '0') + ':00');
+    const resto = faixas.filter((f) => !daBase.some((b) => b.slice(0, 5) === f));
+    return { daBase, resto };
+  }
+
+  function preencherAula(a) {
+    $('#f-curso').value = (a && a.curso) || 'OUTROS';
+    $('#f-professor').value = (a && a.professor) || '';
+    $('#f-disciplina').value = (a && a.disciplina) || '';
+    estado.form.professorPrevisto = (a && a.professor) || '';
+    fecharTrocaProfessor();
+    mostrarProfessor();
+    $('#ins-contexto').textContent = a && a.disciplina ? a.disciplina : '';
+  }
+
+  function mostrarProfessor() { $('#f-prof-nome').textContent = $('#f-professor').value || 'Não informado'; }
+
+  function fecharTrocaProfessor() {
+    $('#f-prof-troca').hidden = true;
+    $('#f-prof-editar').setAttribute('aria-expanded', 'false');
+  }
+
+  function professoresDoDia() {
+    const nomes = new Set();
+    if (estado.painel) estado.painel.salas.forEach((s) => s.aulas.forEach((a) => String(a.professor || '').split(' / ').forEach((n) => { if (n.trim()) nomes.add(n.trim()); })));
+    return Array.from(nomes).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }
+
+  function abrirTrocaProfessor() {
+    if (!$('#f-prof-troca').hidden) { fecharTrocaProfessor(); return; }
+    const atual = $('#f-professor').value, nomes = professoresDoDia(), naLista = nomes.indexOf(atual) >= 0;
+    const lista = $('#f-prof-lista');
+    lista.innerHTML = '<option value="">Selecione o professor</option>' + nomes.map((n) => `<option value="${esc(n)}">${esc(n)}</option>`).join('') + '<option value="__outro">Outro (digitar o nome)</option>';
+    lista.value = naLista ? atual : (atual ? '__outro' : '');
+    $('#f-prof-outro').value = naLista ? '' : atual;
+    $('#f-prof-outro').hidden = lista.value !== '__outro';
+    $('#f-prof-troca').hidden = false;
+    $('#f-prof-editar').setAttribute('aria-expanded', 'true');
+  }
+
+  function aoEscolherProfessor() {
+    const v = $('#f-prof-lista').value, outro = v === '__outro';
+    $('#f-prof-outro').hidden = !outro;
+    if (outro) { $('#f-prof-outro').value = ''; $('#f-professor').value = ''; $('#f-prof-outro').focus(); }
+    else $('#f-professor').value = v;
+    mostrarProfessor();
+  }
+
+  function validarForm() {
+    const f = estado.form;
+    const sala = f.sala || $('#f-sala').value.trim();
+    $('#f-salvar').disabled = !(sala && $('#f-horario').value && f.situacao && f.prof && f.alunos);
+  }
+
+  function marcar(container, valor) { $$(`${container} button`).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.valor === valor))); }
+
+  function definirSituacao(valor) {
+    const s = SITUACOES.find((x) => x.valor === valor);
+    estado.form.situacao = valor; estado.form.prof = s.prof; estado.form.alunos = s.alunos;
+    marcar('#f-situacoes', valor); marcar('#f-prof', s.prof); marcar('#f-alunos', s.alunos);
+    validarForm();
+  }
+
+  function abrirFormulario(sala, horarioEscolhido) {
+    estado.form = { sala: sala ? sala.sala : '', bloco: sala ? sala.bloco : estado.bloco, aulas: sala ? sala.aulas : [], situacao: null, prof: null, alunos: null };
+    estado.foto = null;
+    $('#form-inspecao').reset();
+    $('#f-foto-previa').hidden = true;
+    $('#f-foto-btn').hidden = false;
+    marcar('#f-situacoes', ''); marcar('#f-prof', ''); marcar('#f-alunos', '');
+
+    const manual = !sala;
+    $('#ins-campos-sala').hidden = !manual;
+    $('#ins-titulo').textContent = manual ? 'Sala fora da base' : `Sala ${sala.sala}`;
+    $('#f-bloco').value = estado.form.bloco;
+    $('#f-detalhes').open = manual;
+
+    const { daBase, resto } = opcoesHorario(estado.form.aulas);
+    const destaque = sala ? aulaDestaque(sala) : null;
+    $('#f-horario').innerHTML = (daBase.length ? `<optgroup label="Aulas desta sala">${daBase.map((h) => `<option>${esc(h)}</option>`).join('')}</optgroup>` : '')
+      + `<optgroup label="Outras faixas">${manual ? '<option value="">Selecione</option>' : ''}${resto.map((h) => `<option>${h}</option>`).join('')}</optgroup>`;
+    const escolhida = horarioEscolhido ? estado.form.aulas.find((a) => a.horario === horarioEscolhido) : null;
+    const aulaInicial = escolhida || destaque;
+    if (aulaInicial && aulaInicial.horario) $('#f-horario').value = aulaInicial.horario;
+    else if (manual) $('#f-horario').value = '';
+    preencherAula(aulaInicial || null);
+
+    const contexto = sala && !aulaInicial ? 'Sala sem aula neste turno' : null;
+    if (contexto) $('#ins-contexto').textContent = contexto;
+    $('#f-salas-lista').innerHTML = estado.painel ? estado.painel.salas.map((s) => `<option value="${esc(s.sala)}">`).join('') : '';
+    if (horarioEscolhido && !escolhida && Array.from($('#f-horario').options).some((o) => o.value === horarioEscolhido)) $('#f-horario').value = horarioEscolhido;
+    desenharMarcacao();
+    relogio();
+    validarForm();
+    modal('modal-inspecao').show();
+  }
+
+  function relogio() { $('#f-relogio').textContent = new Date().toLocaleTimeString('pt-BR'); }
+
+  /** Reduz a foto no aparelho antes do envio: economiza dados e acelera a ronda. */
+  function comprimirFoto(arquivo) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(arquivo), img = new Image();
+      img.onload = () => {
+        const max = 1600, k = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        resolve(c.toDataURL('image/jpeg', 0.75));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Não foi possível ler esta imagem.')); };
+      img.src = url;
+    });
+  }
+
+  async function aoEscolherFoto(ev) {
+    const arq = ev.target.files[0]; if (!arq) return;
+    const btn = $('#f-foto-btn'); btn.textContent = 'Processando foto…';
+    try {
+      estado.foto = await comprimirFoto(arq);
+      $('#f-foto-previa img').src = estado.foto;
+      $('#f-foto-previa').hidden = false; btn.hidden = true;
+    } catch (e) { toast(msgErro(e), true); }
+    btn.textContent = 'Tirar ou anexar foto'; ev.target.value = '';
+  }
+
+  function salvarFormulario(ev) {
+    ev.preventDefault();
+    if ($('#f-salvar').disabled) return;
+    const f = estado.form, horario = $('#f-horario').value, sala = f.sala || $('#f-sala').value.trim();
+    const bloco = f.sala ? f.bloco : $('#f-bloco').value;
+    const professorFinal = $('#f-professor').value.trim();
+    const trocado = f.professorPrevisto && professorFinal && professorFinal !== f.professorPrevisto;
+    const observacao = [trocado ? `Professor trocado. Previsto: ${f.professorPrevisto}.` : '', $('#f-obs').value.trim()].filter(Boolean).join(' ');
+    const dados = {
+      id: novoId(), capturadoEm: Date.now(), sala, bloco, horario, situacao: f.situacao,
+      professorEmSala: f.prof, alunosEmSala: f.alunos, observacao,
+      curso: $('#f-curso').value, professor: professorFinal, disciplina: $('#f-disciplina').value.trim(),
+      fotoBase64: estado.foto
+    };
+    const h = parseInt(horario, 10);
+    const previa = { id: dados.id, bloco, sala, horario, turno: h < 12 ? 'Manhã' : h < 18 ? 'Tarde' : 'Noite', situacao: f.situacao, professorEmSala: f.prof, alunosEmSala: f.alunos, hora: new Date().toLocaleTimeString('pt-BR'), inspetor: estado.nome };
+    estado.fila.push({ dados, previa });
+    modal('modal-inspecao').hide();
+    desenharInspetor(); // atualização imediata do card
+    toast('Inspeção registrada');
+    enviarFila();
+  }
+
+  /** Envia em ordem. Sem sinal, mantém na fila; o id evita registro duplicado no reenvio. */
+  async function enviarFila() {
+    if (estado.enviando || !estado.fila.length || !estado.token) return;
+    estado.enviando = true;
+    try {
+      while (estado.fila.length) {
+        const item = estado.fila[0];
+        try {
+          const salvo = await api('salvarInspecao', item.dados, estado.token);
+          estado.fila.shift();
+          if (estado.painel && !estado.painel.inspecoes.some((i) => i.id === salvo.id)) estado.painel.inspecoes.push(salvo);
+          desenharInspetor();
+        } catch (e) {
+          if (ehValidacao(e)) {
+            estado.fila.shift();
+            toast(`Sala ${item.previa.sala}: ${msgErro(e)}`, true);
+            desenharInspetor();
+          } else if (ehSessao(e)) {
+            toast('Sessão expirada. Entre novamente: as inspeções pendentes serão enviadas.', true);
+            sair(false);
+            break;
+          } else {
+            desenharInspetor();
+            break; // sem conexão: tenta de novo depois
+          }
+        }
+      }
+    } finally { estado.enviando = false; }
+  }
+
+  /* ---------- Administrador ---------- */
+
+  async function abrirAdmin() {
+    mostrarView('view-admin');
+    pararAtualizacao();
+    carregando(true);
+    try {
+      estado.admin = await api('obterPainelAdmin', estado.token);
+      desenharAdmin();
+      await carregarDashboard();
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  function trocarAbaAdmin(nome) {
+    $$('#adm-abas button').forEach((b) => b.classList.toggle('ativa', b.dataset.aba === nome));
+    if (nome === 'config') desenharOpcoesAparencia();
+    $$('.aba-admin').forEach((s) => { s.hidden = s.id !== `aba-${nome}`; });
+    if (nome === 'apresentacao' && !estado.apres.dados) { desenharListaSlides(); carregarApresentacao(); }
+  }
+
+  function trocarConfig(nome) {
+    $$('#cfg-abas button').forEach((b) => b.classList.toggle('ativa', b.dataset.cfg === nome));
+    $$('.cfg-painel').forEach((p) => { p.hidden = p.id !== `cfg-${nome}`; });
+  }
+
+  function desenharAdmin() {
+    const a = estado.admin;
+    const opcoes = a.semestres.map((s) => `<option${s === a.semestreAtivo ? ' selected' : ''}>${esc(s)}</option>`).join('');
+    $('#dash-semestre').innerHTML = opcoes;
+    $('#pl-semestre-ativo').innerHTML = opcoes;
+    $('#pl-abrir-bd').href = a.urlPlanilha;
+    $('#pl-historico').innerHTML = a.uploads.length ? a.uploads.map((u) => `<tr><td>${esc(u.data)}</td><td>${esc(u.semestre)}</td><td>${esc(u.arquivo)}</td><td>${esc(u.lidas)}</td><td>${esc(u.inseridas)}</td><td>${esc(u.duplicadas)}</td><td>${esc(u.ignoradas)}</td><td>${esc(u.usuario)}</td></tr>`).join('') : '<tr><td colspan="8" class="texto-suave">Nenhuma importação ainda.</td></tr>';
+    desenharUsuarios();
+    const c = a.config;
+    desenharLogoAdmin(c);
+    periodoPadrao();
+    $('#mc-nome').value = c.nomeUnidade; $('#mc-logo').value = c.logoUrl; $('#mc-primaria').value = c.corPrimaria; $('#mc-secundaria').value = c.corSecundaria;
+  }
+
+  function desenharUsuarios() {
+    const lista = estado.admin.usuarios;
+    $('#adm-alerta-senha').hidden = !lista.some((u) => u.senhaPadrao && u.ativo);
+    const atual = $('#rel-colaborador').value;
+    $('#rel-colaborador').innerHTML = '<option value="">Todos</option>' + lista.map((u) => `<option value="${esc(u.id)}">${esc(u.nome)}${u.ativo ? '' : ' (inativo)'}</option>`).join('');
+    $('#rel-colaborador').value = atual;
+    if (!$('#rel-colaborador').value) $('#rel-colaborador').value = '';
+    $('#us-lista').innerHTML = lista.map((u) => `<tr>
+      <td>${esc(u.nome)}${u.senhaPadrao ? ' <span class="etiqueta atencao">senha padrão</span>' : ''}</td>
+      <td>${u.perfil === 'ADMIN' ? 'Administrador' : 'Inspetor'}</td>
+      <td><span class="etiqueta ${u.ativo ? 'ok' : 'problema'}">${u.ativo ? 'Ativo' : 'Inativo'}</span></td>
+      <td class="acoes"><button class="btn btn-sm btn-fantasma" data-editar="${esc(u.id)}">Editar</button>
+      <button class="btn btn-sm btn-fantasma" data-status-id="${esc(u.id)}" data-ativar="${u.ativo ? '0' : '1'}">${u.ativo ? 'Desativar' : 'Ativar'}</button></td></tr>`).join('');
+  }
+
+  function abrirUsuario(u) {
+    $('#form-usuario').reset();
+    $('#us-titulo').textContent = u ? 'Editar usuário' : 'Novo usuário';
+    $('#us-id').value = u ? u.id : ''; $('#us-nome').value = u ? u.nome : ''; $('#us-perfil').value = u ? u.perfil : 'INSPETOR';
+    $('#us-senha').required = !u;
+    $('#us-ajuda').textContent = u ? 'Deixe em branco para manter a senha atual. Mínimo de 8 caracteres.' : 'Mínimo de 8 caracteres.';
+    modal('modal-usuario').show();
+  }
+
+  async function salvarUsuarioForm(ev) {
+    ev.preventDefault(); carregando(true);
+    try {
+      estado.admin.usuarios = await api('salvarUsuario', { id: $('#us-id').value, nome: $('#us-nome').value, perfil: $('#us-perfil').value, senha: $('#us-senha').value }, estado.token);
+      desenharUsuarios(); modal('modal-usuario').hide(); toast('Usuário salvo');
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  /* ---------- Dashboard ---------- */
+
+  async function carregarDashboard() {
+    const filtros = { semestre: $('#dash-semestre').value, de: $('#dash-de').value, ate: $('#dash-ate').value };
+    desenharDashboard(await api('obterDashboard', filtros, estado.token));
+  }
+
+  function desenharDashboard(m) {
+    const kpi = (rotulo, valor, nota) => `<div class="kpi"><span>${rotulo}</span><strong>${valor}</strong><small>${nota || '&nbsp;'}</small></div>`;
+    $('#dash-kpis').innerHTML = [
+      kpi('Total de rondas', m.total, `Semestre ${esc(m.semestre)}`),
+      kpi('Assiduidade de professores', m.assiduidade === null ? '—' : `${String(m.assiduidade).replace('.', ',')}%`, 'Atraso não conta como falta'),
+      kpi('Aulas válidas', m.validas, 'Aula normal / OK'),
+      kpi('Atrasadas', m.atrasadas, ''),
+      kpi('Professores faltantes', m.faltas, 'Registros de ausência'),
+      kpi('Aulas não iniciadas', m.naoIniciadas, 'Ensalado sem aula'),
+      kpi('Turno crítico', m.turnoCritico ? esc(m.turnoCritico.turno) : '—', m.turnoCritico ? `${String(m.turnoCritico.taxa).replace('.', ',')}% com ocorrência` : 'Sem ocorrências')
+    ].join('');
+
+    const vazio = '<p class="texto-suave mb-0">Sem dados no período.</p>';
+    const maxTaxa = Math.max(1, ...m.cursosOfensores.map((c) => c.taxa));
+    $('#dash-cursos').innerHTML = m.cursosOfensores.length ? m.cursosOfensores.map((c) => {
+      const dica = `${c.curso}: ${c.atrasos} atraso(s), ${c.semProfessor} sem professor, ${c.total} ronda(s)`;
+      return `<div class="barra-linha" title="${esc(dica)}"><span class="barra-rotulo">${esc(c.curso)}</span>
+        <div class="barra-trilha"><div class="barra-valor-mark" style="width:${(c.taxa / maxTaxa) * 100}%"></div></div>
+        <span class="barra-numero"><b>${String(c.taxa).replace('.', ',')}%</b> ${c.ocorrencias} de ${c.total}</span></div>`;
+    }).join('') : vazio;
+
+    const partes = [['ok', 'Normal'], ['atraso', 'Atraso'], ['semProf', 'Sem professor'], ['outros', 'Outras situações']];
+    const comDados = m.turnos.some((t) => t.total);
+    $('#dash-turnos').innerHTML = comDados ? `<div class="legenda">${partes.map(([k, r]) => `<span><i style="background:${CORES_TURNO[k]}"></i>${r}</span>`).join('')}</div>`
+      + m.turnos.map((t) => {
+        const val = { ok: t.ok, atraso: t.atrasos, semProf: t.semProfessor, outros: t.outros };
+        return `<div class="pilha-rotulo">${esc(t.turno)} <small>${t.total} ronda(s) · ${String(t.taxa).replace('.', ',')}% com ocorrência</small></div>
+          <div class="pilha">${partes.filter(([k]) => val[k]).map(([k, r]) => `<i title="${r}: ${val[k]}" style="flex:${val[k]};background:${CORES_TURNO[k]}"></i>`).join('')}</div>`;
+      }).join('') : vazio;
+
+    $('#dash-professores').innerHTML = m.professoresFaltantes.length ? `<ol class="ranking">${m.professoresFaltantes.map((p) => `<li><span>${esc(p.professor)} <small>${esc(p.curso)}</small></span><b>${p.faltas}</b></li>`).join('')}</ol>` : vazio;
+
+    $('#dash-recentes').innerHTML = m.recentes.length ? m.recentes.map((r) => {
+      const n = nivelDe(r.situacao);
+      return `<tr><td>${esc(r.data.split('-').reverse().join('/'))}</td><td>${esc(String(r.hora).slice(0, 5))}</td><td>${esc(r.bloco)} · ${esc(r.sala)}</td>
+      <td><span class="etiqueta ${n}">${esc(tituloDe(r.situacao))}</span></td><td>${esc(r.curso)}</td><td>${esc(r.professor)}</td><td>${esc(r.inspetor)}</td><td>${esc(r.observacao)}</td>
+      <td>${r.temFoto ? `<button class="btn btn-sm btn-fantasma" data-foto="${esc(r.id)}">Ver</button>` : ''}</td></tr>`;
+    }).join('') : '<tr><td colspan="9" class="texto-suave">Sem rondas no período.</td></tr>';
+  }
+
+  async function verFoto(id) {
+    $('#fo-corpo').textContent = 'Carregando…';
+    modal('modal-foto').show();
+    try {
+      const f = await api('obterFotoInspecao', id, estado.token);
+      const img = new Image(); img.src = f.dataUrl; img.className = 'img-fluid rounded'; img.alt = 'Foto da inspeção';
+      $('#fo-corpo').replaceChildren(img);
+    } catch (e) { $('#fo-corpo').textContent = msgErro(e); }
+  }
+
+  /* ---------- Relatório ---------- */
+
+  function dataLocal(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+
+  function periodoPadrao() {
+    if ($('#rel-de').value) return;
+    const hoje = new Date();
+    $('#rel-de').value = dataLocal(new Date(hoje.getFullYear(), hoje.getMonth(), 1));
+    $('#rel-ate').value = dataLocal(hoje);
+  }
+
+  const filtrosRelatorio = () => ({ de: $('#rel-de').value, ate: $('#rel-ate').value, inspetorId: $('#rel-colaborador').value });
+
+  function limparPdf() {
+    if (estado.pdfUrl) URL.revokeObjectURL(estado.pdfUrl);
+    estado.pdfUrl = null;
+    $('#rel-baixar').hidden = true;
+  }
+
+  async function gerarRelatorio(ev) {
+    ev.preventDefault(); limparPdf(); carregando(true);
+    try {
+      estado.relatorio = filtrosRelatorio();
+      desenharRelatorio(await api('obterRelatorioInspecoes', estado.relatorio, estado.token));
+    } catch (e) { $('#rel-pdf').disabled = true; trataErro(e); } finally { carregando(false); }
+  }
+
+  function desenharRelatorio(r) {
+    const temDados = r.total || r.anuladas.length;
+    $('#rel-pdf').disabled = !temDados;
+    $('#rel-excel').disabled = !temDados;
+    estado.relatorioDados = r;
+    const dataBr = (d) => d.split('-').reverse().join('/');
+    if (!temDados) { $('#rel-saida').innerHTML = '<p class="texto-suave mb-0">Nenhuma inspeção encontrada no período.</p>'; return; }
+    $('#rel-saida').innerHTML = `<p class="rel-total">${r.total} inspeções válidas e ${r.anuladas.length} resetadas, de ${dataBr(r.de)} a ${dataBr(r.ate)}</p>
+      <h3 class="rel-subtitulo">Resumo por colaborador</h3>
+      <div class="table-responsive"><table class="table tabela"><thead><tr><th>Colaborador</th><th>Rondas</th><th>Normais</th><th>Atrasos</th><th>Ensalado s/ aula</th><th>Não ensalado</th><th>Sem professor</th><th>Com foto</th><th>Resetadas</th></tr></thead><tbody>
+      ${r.resumo.map((c) => `<tr><td>${esc(c.colaborador)}</td><td>${c.total}</td><td>${c.normais}</td><td>${c.atrasos}</td><td>${c.semAula}</td><td>${c.naoEnsaladas}</td><td>${c.semProfessor}</td><td>${c.comFoto}</td><td>${c.resetadas}</td></tr>`).join('')}</tbody></table></div>
+      <h3 class="rel-subtitulo">Inspeções registradas</h3>
+      <div class="table-responsive"><table class="table tabela"><thead><tr><th>Verificação</th><th>Colaborador</th><th>Local</th><th>Aula</th><th>Situação</th><th>Prof.</th><th>Alunos</th><th>Curso</th><th>Professor</th><th>Disciplina</th><th>Observação</th><th>Foto</th></tr></thead><tbody>
+      ${r.linhas.map((l) => `<tr><td>${esc(dataBr(l.data))} ${esc(String(l.hora).slice(0, 5))}</td><td>${esc(l.colaborador)}</td><td>${esc(l.bloco)} · ${esc(l.sala)}</td><td>${esc(l.horario)}</td><td>${esc(l.situacao)}</td><td>${esc(l.professorEmSala)}</td><td>${esc(l.alunosEmSala)}</td><td>${esc(l.curso)}</td><td>${esc(l.professor)}</td><td>${esc(l.disciplina)}</td><td>${esc(l.observacao)}</td><td>${l.temFoto ? 'Sim' : ''}</td></tr>`).join('')}</tbody></table></div>
+      ${r.anuladas.length ? `<h3 class="rel-subtitulo">Marcações resetadas por erro</h3>
+      <div class="table-responsive"><table class="table tabela"><thead><tr><th>Verificação</th><th>Colaborador</th><th>Local</th><th>Aula</th><th>Situação marcada</th><th>Resetada por</th><th>Resetada em</th><th>Motivo</th></tr></thead><tbody>
+      ${r.anuladas.map((a) => `<tr><td>${esc(dataBr(a.data))} ${esc(String(a.hora).slice(0, 5))}</td><td>${esc(a.colaborador)}</td><td>${esc(a.bloco)} · ${esc(a.sala)}</td><td>${esc(a.horario)}</td><td>${esc(a.situacao)}</td><td>${esc(a.resetadaPor)}</td><td>${esc(dataBr(a.resetadaEm.slice(0, 10)))} ${esc(a.resetadaEm.slice(11, 16))}</td><td>${esc(a.motivo)}</td></tr>`).join('')}</tbody></table></div>` : ''}`;
+  }
+
+  async function gerarPdf() {
+    if (!estado.relatorio) return;
+    limparPdf(); carregando(true);
+    try {
+      const pdf = await api('gerarRelatorioPdf', estado.relatorio, estado.token);
+      const bin = atob(pdf.base64), bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      estado.pdfUrl = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+      const link = $('#rel-baixar');
+      link.href = estado.pdfUrl; link.download = pdf.nome; link.hidden = false;
+      link.click();
+      toast('PDF gerado. Se não baixar, toque em Baixar PDF.');
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  /* ---------- Bibliotecas e downloads ---------- */
+
+  function carregarScript(url, global, erro) {
+    if (window[global]) return Promise.resolve();
+    return new Promise((ok, falha) => {
+      const s = document.createElement('script'); s.src = url; s.onload = ok;
+      s.onerror = () => falha(new Error(erro));
+      document.head.appendChild(s);
+    });
+  }
+
+  function baixarBlob(blob, nome) {
+    const url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = nome;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
+  async function salvarExcel(abas, nome) {
+    await carregarScript(SHEETJS, 'XLSX', 'Não foi possível carregar o gerador de Excel. Verifique a conexão.');
+    const wb = XLSX.utils.book_new();
+    abas.forEach((a) => {
+      const ws = XLSX.utils.aoa_to_sheet([a.cabecalho].concat(a.linhas));
+      ws['!cols'] = a.cabecalho.map((c, i) => ({ wch: Math.min(40, Math.max(String(c).length, ...a.linhas.slice(0, 200).map((l) => String(l[i] === undefined ? '' : l[i]).length)) + 2) }));
+      ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: a.linhas.length, c: a.cabecalho.length - 1 } }) };
+      XLSX.utils.book_append_sheet(wb, ws, a.nome);
+    });
+    baixarBlob(new Blob([XLSX.write(wb, { type: 'array', bookType: 'xlsx' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), nome);
+  }
+
+  async function excelRelatorio() {
+    const r = estado.relatorioDados; if (!r) return;
+    carregando(true);
+    try {
+      await salvarExcel([
+        { nome: 'Resumo', cabecalho: ['Colaborador', 'Rondas', 'Normais', 'Atrasos', 'Ensalado s/ aula', 'Não ensalado', 'Sem professor', 'Com foto', 'Resetadas'],
+          linhas: r.resumo.map((c) => [c.colaborador, c.total, c.normais, c.atrasos, c.semAula, c.naoEnsaladas, c.semProfessor, c.comFoto, c.resetadas]) },
+        { nome: 'Inspeções', cabecalho: ['Data', 'Hora da verificação', 'Colaborador', 'Bloco', 'Sala', 'Horário da aula', 'Turno', 'Situação', 'Professor em sala', 'Alunos em sala', 'Curso', 'Professor', 'Disciplina', 'Observação', 'Foto (link)'],
+          linhas: r.linhas.map((l) => [l.data.split('-').reverse().join('/'), l.hora, l.colaborador, l.bloco, l.sala, l.horario, l.turno, l.situacao, l.professorEmSala, l.alunosEmSala, l.curso, l.professor, l.disciplina, l.observacao, l.fotoUrl || '']) },
+        { nome: 'Resetadas', cabecalho: ['Data', 'Hora da verificação', 'Colaborador', 'Bloco', 'Sala', 'Horário da aula', 'Situação marcada', 'Professor', 'Resetada por', 'Resetada em', 'Motivo'],
+          linhas: r.anuladas.map((a) => [a.data.split('-').reverse().join('/'), a.hora, a.colaborador, a.bloco, a.sala, a.horario, a.situacao, a.professor, a.resetadaPor, a.resetadaEm, a.motivo]) }
+      ], `rondas_${r.de}_a_${r.ate}.xlsx`);
+      toast('Excel gerado');
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  async function excelBase() {
+    const semestre = $('#pl-semestre-ativo').value;
+    carregando(true);
+    try {
+      const linhas = await api('obterBaseAcademica', semestre, estado.token);
+      if (!linhas.length) { toast('Nenhuma aula importada neste semestre.', true); return; }
+      await salvarExcel([{ nome: 'Base acadêmica', cabecalho: ['Semestre', 'Dia', 'Data', 'Horário', 'Turno', 'Bloco', 'Sala', 'Curso', 'Curso (original)', 'Professor', 'Disciplina', 'Turma', 'Arquivo', 'Importado em'], linhas }], `base_academica_${semestre}.xlsx`);
+      toast('Excel gerado');
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  /* ---------- Aparência do gestor ---------- */
+
+  function lerPreferencia(k, padrao) { try { return localStorage.getItem(k) || padrao; } catch (e) { return padrao; } }
+  function gravarPreferencia(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* armazenamento indisponível */ } }
+
+  function aplicarAparencia() {
+    const gestor = estado.view === 'view-admin', r = document.documentElement;
+    const tema = gestor ? lerPreferencia('afya_tema', 'escuro') : 'escuro';
+    r.setAttribute('data-tema', tema);
+    r.setAttribute('data-bs-theme', tema === 'claro' ? 'light' : 'dark');
+    const c = estado.config || { corPrimaria: '#E91E63', corSecundaria: '#0C2340' };
+    const p = gestor ? PALETAS_GESTOR[lerPreferencia('afya_paleta', 'marca')] : null;
+    const acento = p && p.acento ? p.acento : (c.corPrimaria === '#E91E63' ? '#D81B60' : c.corPrimaria);
+    r.style.setProperty('--primaria', p && p.acento ? p.acento : c.corPrimaria);
+    r.style.setProperty('--primaria-escura', acento);
+    r.style.setProperty('--secundaria', p && p.fundo ? p.fundo : c.corSecundaria);
+    r.style.setProperty('--grafico', tema === 'claro' ? acento : (p && p.claro ? p.claro : c.corPrimaria));
+    if (estado.apres.dados && gestor && !$('#aba-apresentacao').hidden) desenharPrevia();
+  }
+
+  function desenharOpcoesAparencia() {
+    const tema = lerPreferencia('afya_tema', 'escuro'), pal = lerPreferencia('afya_paleta', 'marca');
+    marcar('#ap-tema', tema);
+    const marca = estado.config || {};
+    $('#ap-paletas').innerHTML = Object.keys(PALETAS_GESTOR).map((k) => {
+      const p = PALETAS_GESTOR[k];
+      return `<button type="button" data-paleta="${k}" aria-pressed="${k === pal}"><i style="background:${p.acento || esc(marca.corPrimaria)}"></i><i style="background:${p.fundo || esc(marca.corSecundaria)}"></i>${p.nome}</button>`;
+    }).join('');
+  }
+
+  /* ---------- Lanterna ---------- */
+
+  const lanterna = { stream: null, video: null };
+  const espera = (ms) => new Promise((ok) => setTimeout(ok, ms));
+
+  function pararStream(s) { s.getTracks().forEach((t) => t.stop()); }
+
+  function estadoBotaoLanterna(ligada) {
+    const b = $('#ins-lanterna');
+    b.setAttribute('aria-pressed', String(ligada));
+    b.setAttribute('aria-label', ligada ? 'Desligar lanterna' : 'Ligar lanterna');
+  }
+
+  function desligarLanterna() {
+    if (lanterna.stream) pararStream(lanterna.stream);
+    if (lanterna.video) { lanterna.video.srcObject = null; lanterna.video.remove(); }
+    lanterna.stream = lanterna.video = null;
+    estadoBotaoLanterna(false);
+  }
+
+  function criarVideoLanterna(stream) {
+    const v = document.createElement('video');
+    v.muted = true; v.playsInline = true; v.className = 'video-lanterna'; v.srcObject = stream;
+    document.body.appendChild(v);
+    v.play().catch(() => {});
+    return v;
+  }
+
+  /** O Android só informa o flash alguns instantes depois que a câmera começa a rodar. */
+  async function esperarFlash(track) {
+    if (window.ImageCapture) { try { await new ImageCapture(track).getPhotoCapabilities(); } catch (e) { /* segue pela verificação abaixo */ } }
+    for (let i = 0; i < 14; i++) {
+      if (track.getCapabilities && track.getCapabilities().torch) return true;
+      await espera(150);
+    }
+    return false;
+  }
+
+  /** Abre a câmera, tenta acender e confirma. Só devolve a câmera se o flash realmente ligou. */
+  async function testarCamera(restricao, nome, diag) {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: restricao });
+    const v = criarVideoLanterna(stream), track = stream.getVideoTracks()[0], rotulo = track.label || nome;
+    const descartar = async () => { pararStream(stream); v.srcObject = null; v.remove(); await espera(250); };
+    if (!(await esperarFlash(track))) { diag.push(`${rotulo}: sem flash disponível`); await descartar(); return null; }
+    try { await track.applyConstraints({ advanced: [{ torch: true }] }); }
+    catch (e) { diag.push(`${rotulo}: falhou ao acender (${e.name})`); await descartar(); return null; }
+    await espera(350);
+    const aceso = track.getSettings ? track.getSettings().torch : undefined;
+    if (aceso === false) { diag.push(`${rotulo}: comando aceito, flash continuou apagado`); await descartar(); return null; }
+    diag.push(`${rotulo}: flash aceso`);
+    return { stream, v, track };
+  }
+
+  async function localizarFlash(diag) {
+    const principal = await testarCamera({ facingMode: { ideal: 'environment' } }, 'câmera principal', diag);
+    if (principal) return principal;
+    const cameras = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput' && !/front|frontal|user/i.test(d.label));
+    diag.push(`Câmeras encontradas: ${cameras.length}`);
+    cameras.sort((x, y) => Number(/back|rear|traseira/i.test(y.label)) - Number(/back|rear|traseira/i.test(x.label)));
+    for (const c of cameras.slice(0, 8)) {
+      const r = await testarCamera({ deviceId: { exact: c.deviceId } }, c.label || 'câmera', diag).catch((e) => { diag.push(`${c.label || 'câmera'}: não abriu (${e.name})`); return null; });
+      if (r) return r;
+    }
+    return null;
+  }
+
+  function mostrarFalhaLanterna(mensagem, diag) {
+    const noGoogle = window.self !== window.top;
+    $('#ln-mensagem').textContent = noGoogle ? `${mensagem} Você está no link antigo do Google, que pode bloquear a câmera. Abra o app instalado pelo endereço do GitHub.` : mensagem;
+    $('#ln-diagnostico').textContent = [`Ambiente: ${noGoogle ? 'link do Google' : 'app instalável'}`, `Aparelho: ${navigator.userAgent}`].concat(diag).join('\n');
+    modal('modal-lanterna').show();
+  }
+
+  /** Liga o flash em segundo plano: o app continua na tela, com todas as funções. */
+  async function alternarLanterna() {
+    const b = $('#ins-lanterna');
+    if (lanterna.stream) { desligarLanterna(); return; }
+    if (b.disabled) return;
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) { toast('O iPhone não permite ligar o flash por sites. Use o atalho do celular.', true); return; }
+    const diag = [];
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { mostrarFalhaLanterna('Este navegador não dá acesso à câmera.', diag); return; }
+    b.disabled = true;
+    toast('Procurando o flash…');
+    try {
+      const r = await localizarFlash(diag);
+      if (!r) { mostrarFalhaLanterna('Nenhuma câmera acendeu o flash pelo navegador. Use o atalho de lanterna do celular.', diag); return; }
+      lanterna.stream = r.stream; lanterna.video = r.v;
+      r.track.addEventListener('ended', desligarLanterna);
+      estadoBotaoLanterna(true);
+      toast('Lanterna ligada');
+    } catch (e) {
+      diag.push(`Erro: ${(e && e.name) || e}`);
+      const negado = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
+      mostrarFalhaLanterna(negado ? 'O acesso à câmera está bloqueado. Toque no cadeado ao lado do endereço e permita a câmera.' : 'Não foi possível abrir a câmera.', diag);
+    } finally { b.disabled = false; }
+  }
+
+  /* ---------- Reset de marcação ---------- */
+
+  function marcacaoAtual() {
+    const f = estado.form, p = estado.painel;
+    if (!f || !f.sala || !p) return null;
+    const id = chaveSala(f.bloco, f.sala), inicio = String($('#f-horario').value).slice(0, 5);
+    const todas = p.inspecoes.concat(estado.fila.map((x) => x.previa)).filter((i) => chaveSala(i.bloco, i.sala) === id);
+    const mesmaHora = todas.filter((i) => String(i.horario).slice(0, 5) === inicio);
+    return (mesmaHora.length ? mesmaHora : todas.filter((i) => estado.turno === 'Todos' || i.turno === estado.turno)).pop() || null;
+  }
+
+  function fecharPainelReset() {
+    $('#f-reset-painel').hidden = true;
+    $('#f-reset-motivo').value = ''; $('#f-reset-outro').value = ''; $('#f-reset-outro').hidden = true;
+    $('#f-reset-confirmar').disabled = true;
+  }
+
+  function desenharMarcacao() {
+    const i = marcacaoAtual(), caixa = $('#f-marcacao');
+    fecharPainelReset();
+    caixa.hidden = !i;
+    if (!i) return;
+    const naFila = estado.fila.some((x) => x.dados.id === i.id);
+    $('#f-marc-texto').textContent = `Já marcada: ${tituloDe(i.situacao)}`;
+    $('#f-marc-info').textContent = naFila ? 'Aguardando envio. O reset fica disponível depois.' : [String(i.hora).slice(0, 5), i.horario, i.inspetor].filter(Boolean).join(' · ');
+    $('#f-resetar').hidden = naFila;
+  }
+
+  function validarReset() {
+    const m = $('#f-reset-motivo').value, outro = m === '__outro';
+    $('#f-reset-outro').hidden = !outro;
+    $('#f-reset-confirmar').disabled = !(outro ? $('#f-reset-outro').value.trim().length >= 3 : m);
+  }
+
+  async function confirmarReset() {
+    const i = marcacaoAtual(); if (!i) return;
+    const m = $('#f-reset-motivo').value, motivo = m === '__outro' ? $('#f-reset-outro').value.trim() : m, b = $('#f-reset-confirmar');
+    b.disabled = true; b.textContent = 'Resetando…';
+    try {
+      await api('anularInspecao', i.id, motivo, estado.token);
+      estado.painel.inspecoes = estado.painel.inspecoes.filter((x) => x.id !== i.id);
+      desenharInspetor(); desenharMarcacao();
+      toast('Marcação resetada');
+    } catch (e) {
+      b.disabled = false;
+      trataErro(ehValidacao(e) || ehSessao(e) ? e : new Error('Sem conexão. Tente resetar novamente.'));
+    } finally { b.textContent = 'Confirmar reset'; }
+  }
+
+  /* ---------- Conferência do inspetor ---------- */
+
+  function horaAgora() { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+
+  function dadosConferencia() {
+    const p = estado.painel, noTurno = (t) => estado.turno === 'Todos' || t === estado.turno || !t;
+    const feitas = p.inspecoes.concat(estado.fila.map((f) => f.previa)).filter((i) => noTurno(i.turno));
+    const faltam = [], proximas = [], agora = horaAgora();
+    p.salas.forEach((s) => s.aulas.filter((a) => noTurno(a.turno)).forEach((a) => {
+      const feita = feitas.some((i) => chaveSala(i.bloco, i.sala) === s.id && (!a.horario || String(i.horario).slice(0, 5) === a.horario.slice(0, 5)));
+      if (feita) return;
+      (a.horario && a.horario.slice(0, 5) > agora ? proximas : faltam).push({ sala: s, aula: a });
+    }));
+    return { feitas, faltam, proximas };
+  }
+
+  function itemAula(x, clicavel) {
+    const a = x.aula, info = `<strong>${esc(x.sala.sala)}</strong> · ${esc(a.horario || 'Sem horário')}<small>${esc([x.sala.bloco, a.professor, a.disciplina].filter(Boolean).join(' · '))}</small>`;
+    return clicavel ? `<button type="button" class="cf-item" data-cf-sala="${esc(x.sala.id)}" data-cf-horario="${esc(a.horario)}">${info}</button>` : `<div class="cf-item">${info}</div>`;
+  }
+
+  function desenharConferencia() {
+    const d = dadosConferencia();
+    const so = estado.confMinhas;
+    const feitas = (so ? d.feitas.filter((i) => i.inspetor === estado.nome) : d.feitas).slice().reverse();
+    $('#cf-contexto').textContent = `${estado.painel.hoje.split('-').reverse().join('/')} · atualizado às ${horaAgora()}`;
+    $('#cf-turnos').innerHTML = TURNOS.map((t) => `<button type="button" data-cf-turno="${t}" class="${t === estado.turno ? 'ativa' : ''}" aria-pressed="${t === estado.turno}">${t}</button>`).join('');
+    $('#cf-resumo').innerHTML = `<div><strong>${d.faltam.length}</strong>Faltam</div><div><strong>${d.proximas.length}</strong>Ainda não começaram</div><div><strong>${d.feitas.length}</strong>Inspeções feitas</div>`;
+    const bloco = (b) => BLOCOS.concat(SEM_BLOCO).indexOf(b);
+    d.faltam.sort((x, y) => bloco(x.sala.bloco) - bloco(y.sala.bloco));
+    d.proximas.sort((x, y) => String(x.aula.horario).localeCompare(String(y.aula.horario)));
+    $('#cf-corpo').innerHTML = `<h3 class="cf-secao">Faltam inspecionar</h3>${d.faltam.length ? d.faltam.map((x) => itemAula(x, true)).join('') : '<p class="texto-suave">Nenhuma aula pendente neste turno.</p>'}
+      ${d.proximas.length ? `<h3 class="cf-secao">Ainda não começaram</h3>${d.proximas.map((x) => itemAula(x, false)).join('')}` : ''}
+      <h3 class="cf-secao">Já inspecionadas</h3>
+      <div class="form-check cf-filtro"><input class="form-check-input" type="checkbox" id="cf-minhas"${so ? ' checked' : ''}><label class="form-check-label" for="cf-minhas">Mostrar só as minhas</label></div>
+      ${feitas.length ? feitas.map((i) => `<button type="button" class="cf-item" data-cf-sala="${esc(chaveSala(i.bloco, i.sala))}" data-cf-horario="${esc(i.horario)}" data-cf-bloco="${esc(i.bloco)}" data-cf-nome="${esc(i.sala)}"><strong>${esc(i.sala)}</strong> · ${esc(statusInspecao(i).texto)}<small>${esc([i.bloco, i.horario, i.inspetor].filter(Boolean).join(' · '))}</small></button>`).join('') : '<p class="texto-suave">Nenhuma inspeção registrada.</p>'}`;
+  }
+
+  async function abrirConferencia() {
+    if (!estado.painel) { toast('Aguarde o carregamento das salas.', true); return; }
+    desenharConferencia();
+    modal('modal-conferencia').show();
+    await atualizarPainel();
+    desenharConferencia();
+  }
+
+  /* ---------- Gráficos e PowerPoint ---------- */
+
+  const NOMES_KPI = (k) => [['Total de rondas', k.total], ['Assiduidade', k.assiduidade === null ? '—' : `${String(k.assiduidade).replace('.', ',')}%`], ['Aulas válidas', k.validas], ['Atrasadas', k.atrasadas], ['Professores faltantes', k.faltas], ['Turno crítico', k.turnoCritico || '—']];
+
+  /** Prepara os dados do jeito que o modelo pede: pizza e rosca agrupam o excesso em "Outros". */
+  function dadosModelo(ind, modelo, paleta) {
+    const m = MODELOS[modelo], cores = PALETAS_GRAFICO[paleta].cores;
+    let categorias = ind.categorias.slice(), series = ind.series.map((s) => ({ nome: s.nome, valores: s.valores.slice() }));
+    if (m.circular) {
+      let pares = categorias.map((c, i) => [c, series[0].valores[i]]).filter((p) => p[1] > 0);
+      if (pares.length > cores.length) {
+        pares.sort((a, b) => b[1] - a[1]);
+        const resto = pares.slice(cores.length - 1).reduce((t, p) => t + p[1], 0);
+        pares = pares.slice(0, cores.length - 1).concat([['Outros', Math.round(resto * 10) / 10]]);
+      }
+      categorias = pares.map((p) => p[0]);
+      series = [{ nome: series[0].nome, valores: pares.map((p) => p[1]) }];
+    }
+    const multi = series.length > 1;
+    const colorirPontos = !multi && !m.linha && categorias.length <= cores.length;
+    return { categorias, series, cores, multi, colorirPontos, vazio: !categorias.length || series.every((s) => s.valores.every((v) => !v)) };
+  }
+
+  function preencherModelos() {
+    const ind = indicadorAtual(); if (!ind) return;
+    const multi = ind.series.length > 1, atual = $('#ap-modelo').value;
+    const lista = Object.keys(MODELOS).filter((k) => (multi ? !MODELOS[k].circular : !MODELOS[k].empilhado));
+    $('#ap-modelo').innerHTML = lista.map((k) => `<option value="${k}">${MODELOS[k].nome}</option>`).join('');
+    if (lista.indexOf(atual) >= 0) $('#ap-modelo').value = atual;
+    else $('#ap-modelo').value = multi ? 'colunas_emp' : 'colunas';
+  }
+
+  function indicadorAtual() { const d = estado.apres.dados; return d ? d.indicadores[$('#ap-indicador').value] : null; }
+
+  async function desenharPrevia() {
+    const ind = indicadorAtual(); if (!ind) return;
+    try { await carregarScript(CHARTJS, 'Chart', 'Não foi possível carregar os gráficos. Verifique a conexão.'); } catch (e) { toast(msgErro(e), true); return; }
+    const modelo = $('#ap-modelo').value, m = MODELOS[modelo], p = dadosModelo(ind, modelo, $('#ap-paleta').value);
+    if (estado.apres.chart) { estado.apres.chart.destroy(); estado.apres.chart = null; }
+    $('#ap-vazio').hidden = !p.vazio;
+    $('#ap-canvas').hidden = p.vazio;
+    $('#ap-adicionar').disabled = p.vazio;
+    if (p.vazio) return;
+    const estilo = getComputedStyle(document.documentElement);
+    const texto = estilo.getPropertyValue('--texto-2').trim(), grade = estilo.getPropertyValue('--borda').trim();
+    Chart.defaults.color = texto;
+    const datasets = p.series.map((s, i) => {
+      const cor = p.cores[i % p.cores.length];
+      return { label: s.nome, data: s.valores, backgroundColor: p.colorirPontos ? p.cores.slice(0, p.categorias.length) : cor, borderColor: m.circular ? estilo.getPropertyValue('--card').trim() : cor,
+        borderWidth: m.circular ? 2 : (m.linha ? 2 : 0), borderRadius: m.circular || m.linha ? 0 : 4, fill: !!m.area, tension: 0.25, pointRadius: p.categorias.length > 25 ? 0 : 4, maxBarThickness: 56 };
+    });
+    const circular = !!m.circular;
+    estado.apres.chart = new Chart($('#ap-canvas'), {
+      type: m.chartjs,
+      data: { labels: p.categorias, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false, indexAxis: m.horizontal ? 'y' : 'x', cutout: m.chartjs === 'doughnut' ? '58%' : undefined,
+        plugins: { legend: { display: p.multi || circular, position: 'bottom' }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${String(c.parsed.y !== undefined && !circular ? (m.horizontal ? c.parsed.x : c.parsed.y) : c.parsed).replace('.', ',')}${ind.unidade === '%' ? '%' : ''}` } } },
+        scales: circular ? {} : { x: { stacked: !!m.empilhado, beginAtZero: true, grid: { color: m.horizontal ? grade : 'transparent' } }, y: { stacked: !!m.empilhado, beginAtZero: true, grid: { color: m.horizontal ? 'transparent' : grade } } }
+      }
+    });
+  }
+
+  function aoMudarIndicador() {
+    const ind = indicadorAtual(); if (!ind) return;
+    $('#ap-titulo').value = ind.titulo;
+    preencherModelos();
+    desenharPrevia();
+  }
+
+  async function carregarApresentacao(ev) {
+    if (ev) ev.preventDefault();
+    if (!$('#ap-de').value) { $('#ap-de').value = $('#rel-de').value; $('#ap-ate').value = $('#rel-ate').value; }
+    carregando(true);
+    try {
+      if (!estado.apres.templates) { estado.apres.templates = await api('obterTemplatesApresentacao', estado.token); desenharTemplates(); }
+      const d = await api('obterDadosGraficos', { de: $('#ap-de').value, ate: $('#ap-ate').value }, estado.token);
+      estado.apres.dados = d;
+      $('#ap-total').textContent = `${d.total} rondas no período`;
+      const atual = $('#ap-indicador').value;
+      $('#ap-indicador').innerHTML = Object.keys(d.indicadores).map((k) => `<option value="${k}">${esc(d.indicadores[k].titulo)}</option>`).join('');
+      if (atual) $('#ap-indicador').value = atual;
+      aoMudarIndicador();
+      atualizarBotaoPptx();
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  function atualizarBotaoPptx() { $('#ap-baixar').disabled = !estado.apres.dados || !(estado.apres.itens.length || $('#ap-kpis').checked); }
+
+  function desenharListaSlides() {
+    const it = estado.apres.itens;
+    $('#ap-lista').innerHTML = it.length ? it.map((s, i) => `<li><span>${i + 1}. ${esc(s.titulo)}<small>${MODELOS[s.modelo].nome} · ${PALETAS_GRAFICO[s.paleta].nome}</small></span>
+      <button class="btn btn-fantasma" data-mover="${i}" data-dir="-1" aria-label="Subir"${i ? '' : ' disabled'}>↑</button>
+      <button class="btn btn-fantasma" data-mover="${i}" data-dir="1" aria-label="Descer"${i < it.length - 1 ? '' : ' disabled'}>↓</button>
+      <button class="btn btn-fantasma" data-excluir="${i}" aria-label="Remover">✕</button></li>`).join('') : '<li class="texto-suave">Monte um gráfico e adicione aqui.</li>';
+    atualizarBotaoPptx();
+  }
+
+  function desenharTemplates() {
+    const t = estado.apres.templates;
+    ['capa', 'conteudo'].forEach((k) => {
+      const el = $(`#tp-previa-${k}`);
+      el.textContent = '';
+      if (t[k]) { const i = new Image(); i.alt = `Template ${k}`; i.src = t[k]; el.appendChild(i); } else el.textContent = 'Sem template';
+      $(`[data-tp-remover=${k}]`).hidden = !t[k];
+    });
+    $('#tp-cor-capa').value = t.corCapa; $('#tp-cor-conteudo').value = t.corConteudo;
+  }
+
+  function prepararTemplate(arquivo) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(arquivo), img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const k = Math.min(1, 1920 / img.naturalWidth), c = document.createElement('canvas');
+        c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+        const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0, c.width, c.height);
+        resolve({ dados: c.toDataURL('image/jpeg', 0.9), proporcao: img.naturalWidth / img.naturalHeight });
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Não foi possível ler esta imagem.')); };
+      img.src = url;
+    });
+  }
+
+  async function enviarTemplate(tipo, arq) {
+    carregando(true);
+    try {
+      const t = await prepararTemplate(arq);
+      await api('salvarTemplateApresentacao', tipo, t.dados, estado.token);
+      estado.apres.templates[tipo] = t.dados;
+      desenharTemplates();
+      toast(Math.abs(t.proporcao - 16 / 9) > 0.04 ? 'Template salvo, mas não está em 16:9 e ficará esticado.' : 'Template salvo', Math.abs(t.proporcao - 16 / 9) > 0.04);
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  function tamanhoImagem(dados) {
+    return new Promise((ok) => { const i = new Image(); i.onload = () => ok(i.naturalWidth / i.naturalHeight); i.onerror = () => ok(0); i.src = dados; });
+  }
+
+  const hexPpt = (c) => String(c).replace('#', '').toUpperCase();
+
+  function destaqueSlide(ind, p) {
+    if (p.multi || !p.categorias.length) return '';
+    const v = p.series[0].valores, max = Math.max(...v), i = v.indexOf(max);
+    const fmt = `${String(max).replace('.', ',')}${ind.unidade === '%' ? '%' : ` ${ind.unidade}`}`;
+    return `Maior resultado: ${p.categorias[i]} (${fmt})`;
+  }
+
+  async function gerarPowerPoint() {
+    const ap = estado.apres, d = ap.dados; if (!d) return;
+    carregando(true);
+    try {
+      await carregarScript(PPTXGEN, 'PptxGenJS', 'Não foi possível carregar o gerador de PowerPoint. Verifique a conexão.');
+      const t = ap.templates, pptx = new PptxGenJS();
+      pptx.layout = 'LAYOUT_WIDE';
+      pptx.title = $('#ap-nome').value; pptx.company = t.nomeUnidade;
+      const fundo = (img, cor) => (img ? { data: img.replace(/^data:/, '') } : { color: cor });
+      const objetosConteudo = [];
+      if (!t.conteudo) {
+        objetosConteudo.push({ rect: { x: 0, y: 0, w: 13.33, h: 0.14, fill: { color: hexPpt(t.corPrimaria) } } });
+        if (t.logo && !/image\/webp/.test(t.logo)) {
+          const r = await tamanhoImagem(t.logo);
+          if (r) objetosConteudo.push({ image: { x: 12.83 - 0.5 * r, y: 0.32, w: 0.5 * r, h: 0.5, data: t.logo } });
+        }
+      }
+      pptx.defineSlideMaster({ title: 'CAPA', background: fundo(t.capa, hexPpt(t.corSecundaria)) });
+      pptx.defineSlideMaster({ title: 'CONTEUDO', background: fundo(t.conteudo, 'FFFFFF'), objects: objetosConteudo });
+      const corCapa = hexPpt(t.corCapa), corTitulo = hexPpt(t.corConteudo);
+      const dataBr = (x) => x.split('-').reverse().join('/');
+
+      const capa = pptx.addSlide({ masterName: 'CAPA' });
+      capa.addText($('#ap-nome').value, { x: 0.8, y: 2.5, w: 11.7, h: 1.3, fontFace: 'Arial', fontSize: 44, bold: true, color: corCapa, valign: 'bottom' });
+      capa.addText($('#ap-sub').value, { x: 0.8, y: 3.9, w: 11.7, h: 0.6, fontFace: 'Arial', fontSize: 22, color: corCapa });
+      capa.addText(`${t.nomeUnidade}  |  ${dataBr(d.de)} a ${dataBr(d.ate)}`, { x: 0.8, y: 4.55, w: 11.7, h: 0.45, fontFace: 'Arial', fontSize: 15, color: corCapa });
+
+      const tituloSlide = (s, texto) => s.addText(texto, { x: 0.5, y: 0.3, w: 11.2, h: 0.7, fontFace: 'Arial', fontSize: 26, bold: true, color: corTitulo, valign: 'middle' });
+
+      if ($('#ap-kpis').checked) {
+        const s = pptx.addSlide({ masterName: 'CONTEUDO' });
+        tituloSlide(s, 'Indicadores gerais');
+        NOMES_KPI(d.kpis).forEach(([rotulo, valor], i) => {
+          const x = 0.7 + (i % 3) * 4.05, y = 1.5 + Math.floor(i / 3) * 2.45;
+          s.addText([{ text: String(valor), options: { fontSize: 40, bold: true, color: hexPpt(t.corPrimaria), breakLine: true } }, { text: rotulo, options: { fontSize: 16, color: '334155' } }],
+            { shape: pptx.ShapeType.roundRect, rectRadius: 0.08, x, y, w: 3.8, h: 2.15, fontFace: 'Arial', align: 'center', valign: 'middle', fill: { color: 'F1F5F9' }, line: { color: 'CBD5E1', width: 1 } });
+        });
+      }
+
+      const tiposPpt = { bar: pptx.charts.BAR, line: pptx.charts.LINE, area: pptx.charts.AREA, pie: pptx.charts.PIE, doughnut: pptx.charts.DOUGHNUT };
+      let ignorados = 0;
+      ap.itens.forEach((item) => {
+        const ind = d.indicadores[item.indicador], m = MODELOS[item.modelo], p = dadosModelo(ind, item.modelo, item.paleta);
+        if (p.vazio) { ignorados++; return; }
+        const s = pptx.addSlide({ masterName: 'CONTEUDO' });
+        tituloSlide(s, item.titulo);
+        const formato = ind.unidade === '%' ? '0.0"%"' : '0';
+        const opcoes = {
+          x: 0.5, y: 1.15, w: 12.33, h: 5.35,
+          chartColors: (p.colorirPontos ? p.cores.slice(0, p.categorias.length) : p.multi ? p.cores.slice(0, p.series.length) : [p.cores[0]]).map(hexPpt),
+          showLegend: p.multi || !!m.circular, legendPos: 'b', legendFontSize: 13, legendFontFace: 'Arial', legendColor: '334155',
+          showValue: !m.linha && !m.area && !(p.categorias.length > 16), dataLabelFontSize: 12, dataLabelFontFace: 'Arial', dataLabelColor: m.circular ? 'FFFFFF' : '334155', dataLabelFormatCode: formato
+        };
+        if (m.circular) {
+          Object.assign(opcoes, { showPercent: true, showValue: false, dataLabelFormatCode: '0%', dataBorder: { pt: 1, color: 'FFFFFF' } });
+          if (m.chartjs === 'doughnut') opcoes.holeSize = 58;
+        } else {
+          Object.assign(opcoes, { catAxisLabelFontSize: 12, catAxisLabelFontFace: 'Arial', catAxisLabelColor: '334155', valAxisLabelFontSize: 11, valAxisLabelColor: '64748B', valAxisLabelFormatCode: formato, valAxisMinVal: 0, valGridLine: { color: 'E2E8F0', size: 1 }, catGridLine: { style: 'none' } });
+          if (m.chartjs === 'bar') Object.assign(opcoes, { barDir: m.horizontal ? 'bar' : 'col', barGrouping: m.empilhado ? 'stacked' : 'clustered', barGapWidthPct: 55, catAxisOrientation: m.horizontal ? 'maxMin' : 'minMax' });
+          if (m.empilhado) opcoes.showValue = false;
+          if (m.linha) Object.assign(opcoes, { lineSize: 3, lineDataSymbolSize: p.categorias.length > 25 ? 0 : 8 });
+        }
+        s.addChart(tiposPpt[m.area ? 'area' : m.chartjs], p.series.map((x) => ({ name: x.nome, labels: p.categorias, values: x.valores })), opcoes);
+        const nota = destaqueSlide(ind, p);
+        if (nota) s.addText(nota, { x: 0.5, y: 6.55, w: 12.33, h: 0.45, fontFace: 'Arial', fontSize: 15, bold: true, color: '334155' });
+      });
+
+      baixarBlob(await pptx.write({ outputType: 'blob' }), `reuniao-resultados_${d.de}_a_${d.ate}.pptx`);
+      toast(ignorados ? `PowerPoint gerado. ${ignorados} gráfico(s) sem dados ficaram de fora.` : 'PowerPoint gerado');
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  /* ---------- Importação de planilha ---------- */
+
+  function carregarSheetJS() {
+    if (window.XLSX) return Promise.resolve();
+    return new Promise((ok, falha) => {
+      const s = document.createElement('script'); s.src = SHEETJS; s.onload = ok;
+      s.onerror = () => falha(new Error('Não foi possível carregar o leitor de Excel. Verifique a conexão ou envie em CSV.'));
+      document.head.appendChild(s);
+    });
+  }
+
+  function base64Bytes(bytes) {
+    let bin = ''; const passo = 0x8000;
+    for (let i = 0; i < bytes.length; i += passo) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + passo));
+    return btoa(bin);
+  }
+  const base64Texto = (t) => base64Bytes(new TextEncoder().encode(t));
+
+  /** Converte a aba com mais linhas em CSV, preservando hora e data sem ambiguidade. */
+  async function excelParaBase64(arquivo) {
+    await carregarSheetJS();
+    const wb = XLSX.read(new Uint8Array(await arquivo.arrayBuffer()), { type: 'array', cellNF: true });
+    const ws = wb.SheetNames.map((n) => wb.Sheets[n]).sort((a, b) => linhasDe(b) - linhasDe(a))[0];
+    Object.keys(ws).forEach((k) => {
+      const c = ws[k];
+      if (k[0] === '!' || c.t !== 'n' || !c.z || !XLSX.SSF.is_date(c.z)) return;
+      const d = XLSX.SSF.parse_date_code(c.v), p2 = (n) => String(n).padStart(2, '0');
+      c.t = 's';
+      c.v = c.w = c.v < 1 ? `${p2(d.H)}:${p2(d.M)}` : `${d.y}-${p2(d.m)}-${p2(d.d)}`;
+      delete c.z;
+    });
+    return base64Texto(XLSX.utils.sheet_to_csv(ws, { FS: ';', blankrows: false }));
+  }
+  function linhasDe(ws) { return ws['!ref'] ? XLSX.utils.decode_range(ws['!ref']).e.r : 0; }
+
+  function statusImportacao(texto, erro) { const s = $('#imp-status'); s.textContent = texto; s.classList.toggle('erro', !!erro); }
+
+  function abrirImportar() {
+    estado.importacao = null;
+    $('#imp-arquivo').value = ''; $('#imp-mapa').hidden = true; $('#imp-resultado').hidden = true;
+    $('#imp-confirmar').disabled = true; statusImportacao('');
+    $('#imp-semestre').value = estado.admin.semestreAtivo;
+    modal('modal-importar').show();
+  }
+
+  async function analisarArquivo() {
+    const arq = $('#imp-arquivo').files[0]; if (!arq) return;
+    const semestre = $('#imp-semestre').value.trim();
+    $('#imp-mapa').hidden = true; $('#imp-resultado').hidden = true; $('#imp-confirmar').disabled = true;
+    if (!/^\d{4}\.[12]$/.test(semestre)) { statusImportacao('Informe o semestre no formato 2026.2 e selecione o arquivo novamente.', true); $('#imp-arquivo').value = ''; return; }
+    statusImportacao('Analisando a planilha…');
+    try {
+      const excel = /\.xlsx?$/i.test(arq.name);
+      const base64 = excel ? await excelParaBase64(arq) : base64Bytes(new Uint8Array(await arq.arrayBuffer()));
+      const p = await api('processarUploadBaseDados', base64, arq.name, semestre, estado.token, { previa: true });
+      estado.importacao = { base64, nome: arq.name, cabecalhos: p.cabecalhos };
+      desenharMapeamento(p);
+    } catch (e) { if (ehSessao(e)) trataErro(e); else statusImportacao(msgErro(e), true); }
+  }
+
+  function desenharMapeamento(p) {
+    statusImportacao(`${p.totalLinhas} linhas encontradas.`);
+    $('#imp-campos').innerHTML = Object.keys(p.campos).map((c) => `<div><label class="form-label" for="map-${c}">${esc(p.campos[c])}${c === 'sala' ? ' *' : ''}</label>
+      <select id="map-${c}" class="form-select" data-campo="${c}"><option value="">Não usar</option>${p.cabecalhos.map((h, i) => `<option value="${i}"${p.mapa[c] === i ? ' selected' : ''}>${esc(h || `Coluna ${i + 1}`)}</option>`).join('')}</select></div>`).join('');
+    $('#imp-amostra-cab').innerHTML = `<tr>${p.cabecalhos.map((h) => `<th>${esc(h)}</th>`).join('')}</tr>`;
+    $('#imp-amostra').innerHTML = p.amostra.map((l) => `<tr>${p.cabecalhos.map((_, i) => `<td>${esc(l[i])}</td>`).join('')}</tr>`).join('');
+    $('#imp-mapa').hidden = false;
+    verificarMapa();
+  }
+
+  function verificarMapa() { $('#imp-confirmar').disabled = $('#map-sala').value === ''; }
+
+  async function confirmarImportacao() {
+    const imp = estado.importacao; if (!imp) return;
+    const mapa = {};
+    $$('#imp-campos select').forEach((s) => { if (s.value !== '') mapa[s.dataset.campo] = Number(s.value); });
+    const semestre = $('#imp-semestre').value.trim();
+    if (!/^\d{4}\.[12]$/.test(semestre)) { statusImportacao('Informe o semestre no formato 2026.2.', true); return; }
+    $('#imp-confirmar').disabled = true; statusImportacao('Importando…');
+    try {
+      const r = await api('processarUploadBaseDados', imp.base64, imp.nome, semestre, estado.token, { mapa, tornarAtivo: $('#imp-ativo').checked });
+      const alertas = [];
+      if (r.semBloco) alertas.push(`${r.semBloco} sem bloco identificado (aparecem na aba SEM BLOCO)`);
+      if (r.semHorario) alertas.push(`${r.semHorario} sem horário`);
+      statusImportacao('');
+      $('#imp-mapa').hidden = true;
+      const res = $('#imp-resultado'); res.hidden = false;
+      res.innerHTML = `<strong>${r.inseridas} aulas importadas em ${esc(r.anoSemestre)}.</strong><br>${r.duplicadas} já existentes e ${r.ignoradas} sem sala física foram ignoradas.${alertas.length ? `<br>Atenção: ${esc(alertas.join('; '))}.` : ''}`;
+      estado.importacao = null; estado.painel = null;
+      estado.admin = await api('obterPainelAdmin', estado.token);
+      desenharAdmin();
+      await carregarDashboard();
+    } catch (e) { $('#imp-confirmar').disabled = false; if (ehSessao(e)) trataErro(e); else statusImportacao(msgErro(e), true); }
+  }
+
+  /* ---------- Eventos ---------- */
+
+  function ligarEventos() {
+    $('#form-login').addEventListener('submit', login);
+    $('#login-ver').addEventListener('click', () => {
+      const i = $('#login-senha'), mostrar = i.type === 'password';
+      i.type = mostrar ? 'text' : 'password'; $('#login-ver').textContent = mostrar ? 'Ocultar' : 'Ver';
+    });
+    $$('[data-sair]').forEach((b) => b.addEventListener('click', () => sair()));
+
+    $('#ins-blocos').addEventListener('click', (e) => { const b = e.target.closest('[data-bloco]'); if (b) { estado.bloco = b.dataset.bloco; desenharInspetor(); } });
+    $('#ins-turnos').addEventListener('click', (e) => { const b = e.target.closest('[data-turno]'); if (b) { estado.turno = b.dataset.turno; desenharTurnos(); desenharInspetor(); } });
+    $('#ins-salas').addEventListener('click', (e) => { const c = e.target.closest('[data-sala-id]'); if (c) abrirFormulario(salasVisiveis().find((s) => s.id === c.dataset.salaId)); });
+    $('#ins-nova').addEventListener('click', () => abrirFormulario(null));
+    $('#ins-voltar-admin').addEventListener('click', abrirAdmin);
+    $('#adm-ir-ronda').addEventListener('click', abrirInspetor);
+
+    $('#f-situacoes').innerHTML = SITUACOES.map((s) => `<button type="button" data-valor="${esc(s.valor)}" data-nivel="${s.nivel}" aria-pressed="false">${s.titulo}${s.sub ? `<small>${s.sub}</small>` : ''}</button>`).join('');
+    ['#f-prof', '#f-alunos'].forEach((id) => { $(id).innerHTML = ['SIM', 'NÃO'].map((v) => `<button type="button" data-valor="${v}" aria-pressed="false">${v}</button>`).join(''); });
+    $('#f-bloco').innerHTML = BLOCOS.concat(SEM_BLOCO).map((b) => `<option>${b}</option>`).join('');
+    $('#f-curso').innerHTML = CURSOS.map((c) => `<option>${c}</option>`).join('');
+    $('#f-situacoes').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) definirSituacao(b.dataset.valor); });
+    $('#f-prof').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { estado.form.prof = b.dataset.valor; marcar('#f-prof', b.dataset.valor); validarForm(); } });
+    $('#f-alunos').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { estado.form.alunos = b.dataset.valor; marcar('#f-alunos', b.dataset.valor); validarForm(); } });
+    $('#f-horario').addEventListener('change', () => {
+      const a = estado.form.aulas.find((x) => x.horario === $('#f-horario').value);
+      if (a) preencherAula(a);
+      desenharMarcacao();
+      validarForm();
+    });
+    $('#f-sala').addEventListener('input', validarForm);
+    $('#f-resetar').addEventListener('click', () => { const p = $('#f-reset-painel'); if (p.hidden) p.hidden = false; else fecharPainelReset(); });
+    $('#f-reset-motivo').addEventListener('change', validarReset);
+    $('#f-reset-outro').addEventListener('input', validarReset);
+    $('#f-reset-confirmar').addEventListener('click', confirmarReset);
+    $('#ln-copiar').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText($('#ln-diagnostico').textContent); toast('Diagnóstico copiado'); }
+      catch (e) { const r = document.createRange(); r.selectNodeContents($('#ln-diagnostico')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Texto selecionado. Toque em Copiar.'); }
+    });
+    $('#f-prof-editar').addEventListener('click', abrirTrocaProfessor);
+    $('#f-prof-lista').addEventListener('change', aoEscolherProfessor);
+    $('#f-prof-outro').addEventListener('input', () => { $('#f-professor').value = $('#f-prof-outro').value.trim(); mostrarProfessor(); });
+    $('#f-foto-btn').addEventListener('click', () => $('#f-foto').click());
+    $('#f-foto').addEventListener('change', aoEscolherFoto);
+    $('#f-foto-remover').addEventListener('click', () => { estado.foto = null; $('#f-foto-previa').hidden = true; $('#f-foto-btn').hidden = false; });
+    $('#form-inspecao').addEventListener('submit', salvarFormulario);
+    setInterval(() => { if (document.getElementById('modal-inspecao').classList.contains('show')) relogio(); }, 1000);
+
+    $('#adm-abas').addEventListener('click', (e) => { const b = e.target.closest('[data-aba]'); if (b) trocarAbaAdmin(b.dataset.aba); });
+    $('#adm-ir-usuarios').addEventListener('click', (e) => { e.preventDefault(); trocarAbaAdmin('config'); trocarConfig('usuarios'); });
+    $('#adm-config').addEventListener('click', () => trocarAbaAdmin('config'));
+    $('#cfg-abas').addEventListener('click', (e) => { const b = e.target.closest('[data-cfg]'); if (b) trocarConfig(b.dataset.cfg); });
+    $('#dash-aplicar').addEventListener('click', async () => { carregando(true); try { await carregarDashboard(); } catch (e) { trataErro(e); } finally { carregando(false); } });
+    $('#dash-recentes').addEventListener('click', (e) => { const b = e.target.closest('[data-foto]'); if (b) verFoto(b.dataset.foto); });
+
+    $('#form-relatorio').addEventListener('submit', gerarRelatorio);
+    $('#rel-pdf').addEventListener('click', gerarPdf);
+    ['#rel-de', '#rel-ate', '#rel-colaborador'].forEach((id) => $(id).addEventListener('change', () => { $('#rel-pdf').disabled = true; $('#rel-excel').disabled = true; limparPdf(); }));
+    $('#rel-excel').addEventListener('click', excelRelatorio);
+    $('#pl-excel').addEventListener('click', excelBase);
+
+    $('#ins-lanterna').addEventListener('click', alternarLanterna);
+    $('#ins-conferir').addEventListener('click', abrirConferencia);
+    $('#cf-turnos').addEventListener('click', (e) => { const b = e.target.closest('[data-cf-turno]'); if (b) { estado.turno = b.dataset.cfTurno; desenharTurnos(); desenharInspetor(); desenharConferencia(); } });
+    $('#cf-corpo').addEventListener('change', (e) => { if (e.target.id === 'cf-minhas') { estado.confMinhas = e.target.checked; desenharConferencia(); } });
+    $('#cf-corpo').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-cf-sala]'); if (!b) return;
+      const sala = estado.painel.salas.find((s) => s.id === b.dataset.cfSala) || { id: b.dataset.cfSala, bloco: b.dataset.cfBloco, sala: b.dataset.cfNome, aulas: [] }, horario = b.dataset.cfHorario;
+      document.getElementById('modal-conferencia').addEventListener('hidden.bs.modal', () => abrirFormulario(sala, horario), { once: true });
+      modal('modal-conferencia').hide();
+    });
+
+    $('#ap-tema').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { gravarPreferencia('afya_tema', b.dataset.valor); desenharOpcoesAparencia(); aplicarAparencia(); } });
+    $('#ap-paletas').addEventListener('click', (e) => { const b = e.target.closest('[data-paleta]'); if (b) { gravarPreferencia('afya_paleta', b.dataset.paleta); desenharOpcoesAparencia(); aplicarAparencia(); } });
+
+    $('#ap-paleta').innerHTML = Object.keys(PALETAS_GRAFICO).map((k) => `<option value="${k}">${PALETAS_GRAFICO[k].nome}</option>`).join('');
+    $('#form-apres').addEventListener('submit', carregarApresentacao);
+    $('#ap-indicador').addEventListener('change', aoMudarIndicador);
+    $('#ap-modelo').addEventListener('change', desenharPrevia);
+    $('#ap-paleta').addEventListener('change', desenharPrevia);
+    $('#ap-kpis').addEventListener('change', atualizarBotaoPptx);
+    $('#ap-adicionar').addEventListener('click', () => {
+      estado.apres.itens.push({ indicador: $('#ap-indicador').value, modelo: $('#ap-modelo').value, paleta: $('#ap-paleta').value, titulo: $('#ap-titulo').value.trim() || indicadorAtual().titulo });
+      desenharListaSlides(); toast('Gráfico adicionado');
+    });
+    $('#ap-lista').addEventListener('click', (e) => {
+      const it = estado.apres.itens, m = e.target.closest('[data-mover]'), x = e.target.closest('[data-excluir]');
+      if (m) { const i = Number(m.dataset.mover), j = i + Number(m.dataset.dir); [it[i], it[j]] = [it[j], it[i]]; desenharListaSlides(); }
+      if (x) { it.splice(Number(x.dataset.excluir), 1); desenharListaSlides(); }
+    });
+    $('#ap-baixar').addEventListener('click', gerarPowerPoint);
+    ['capa', 'conteudo'].forEach((k) => {
+      $(`[data-tp-enviar=${k}]`).addEventListener('click', () => $(`#tp-arq-${k}`).click());
+      $(`#tp-arq-${k}`).addEventListener('change', (e) => { const a = e.target.files[0]; if (a) enviarTemplate(k, a); e.target.value = ''; });
+      $(`[data-tp-remover=${k}]`).addEventListener('click', async () => {
+        carregando(true);
+        try { await api('removerTemplateApresentacao', k, estado.token); estado.apres.templates[k] = ''; desenharTemplates(); toast('Template removido'); }
+        catch (e) { trataErro(e); } finally { carregando(false); }
+      });
+    });
+    ['#tp-cor-capa', '#tp-cor-conteudo'].forEach((id) => $(id).addEventListener('change', async () => {
+      try {
+        await api('salvarCoresTemplate', $('#tp-cor-capa').value, $('#tp-cor-conteudo').value, estado.token);
+        estado.apres.templates.corCapa = $('#tp-cor-capa').value; estado.apres.templates.corConteudo = $('#tp-cor-conteudo').value;
+      } catch (e) { trataErro(e); }
+    }));
+    $('#pl-importar').addEventListener('click', abrirImportar);
+    $('#imp-arquivo').addEventListener('change', analisarArquivo);
+    $('#imp-campos').addEventListener('change', verificarMapa);
+    $('#imp-confirmar').addEventListener('click', confirmarImportacao);
+    $('#pl-salvar-ativo').addEventListener('click', async () => {
+      carregando(true);
+      try {
+        estado.admin.semestreAtivo = await api('definirSemestreAtivo', $('#pl-semestre-ativo').value, estado.token);
+        estado.painel = null; toast('Semestre vigente atualizado');
+      } catch (e) { trataErro(e); } finally { carregando(false); }
+    });
+
+    $('#us-novo').addEventListener('click', () => abrirUsuario(null));
+    $('#form-usuario').addEventListener('submit', salvarUsuarioForm);
+    $('#us-lista').addEventListener('click', async (e) => {
+      const ed = e.target.closest('[data-editar]');
+      if (ed) { abrirUsuario(estado.admin.usuarios.find((u) => u.id === ed.dataset.editar)); return; }
+      const st = e.target.closest('[data-status-id]');
+      if (!st) return;
+      carregando(true);
+      try { estado.admin.usuarios = await api('alterarStatusUsuario', st.dataset.statusId, st.dataset.ativar === '1', estado.token); desenharUsuarios(); toast('Status atualizado'); }
+      catch (err) { trataErro(err); } finally { carregando(false); }
+    });
+
+    $('#form-marca').addEventListener('submit', async (ev) => {
+      ev.preventDefault(); carregando(true);
+      try {
+        const c = await api('salvarConfiguracaoMarca', { nomeUnidade: $('#mc-nome').value, logoUrl: $('#mc-logo').value, corPrimaria: $('#mc-primaria').value.toUpperCase(), corSecundaria: $('#mc-secundaria').value.toUpperCase() }, estado.token);
+        aplicarMarca(c); toast('Marca atualizada');
+      } catch (e) { trataErro(e); } finally { carregando(false); }
+    });
+    $('#mc-logo-enviar').addEventListener('click', () => $('#mc-logo-arquivo').click());
+    $('#mc-logo-arquivo').addEventListener('change', async (ev) => {
+      const arq = ev.target.files[0]; if (!arq) return;
+      carregando(true);
+      try {
+        const c = await api('salvarLogoMarca', await prepararLogo(arq), estado.token);
+        aplicarMarca(c); desenharLogoAdmin(c); toast('Logo atualizado');
+      } catch (e) { trataErro(e); } finally { carregando(false); ev.target.value = ''; }
+    });
+    $('#mc-logo-remover').addEventListener('click', async () => {
+      carregando(true);
+      try {
+        const c = await api('removerLogoMarca', estado.token);
+        aplicarMarca(c); desenharLogoAdmin(c); toast('Logo removido');
+      } catch (e) { trataErro(e); } finally { carregando(false); }
+    });
+
+    window.addEventListener('online', enviarFila);
+    window.addEventListener('beforeunload', (e) => { if (estado.fila.length) { e.preventDefault(); e.returnValue = ''; } });
+  }
+
+  /* ---------- Início ---------- */
+
+  async function iniciar() {
+    ligarEventos();
+    api('obterConfigPublica').then(aplicarMarca).catch(() => {});
+    const token = lerGuardado();
+    if (!token) return;
+    try { entrarNoApp(await api('retomarSessao', token)); }
+    catch (e) { guardar(null); }
+  }
+
+  iniciar();
+})();
+</script>
+
+</body>
+</html>

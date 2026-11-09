@@ -1,0 +1,1356 @@
+<script>
+/* Cliente · Vanilla JS. Todo dado externo passa por esc() antes de ir para o HTML. */
+(function () {
+  'use strict';
+
+  const SITUACOES = [
+    { valor: 'AULA NORMAL / OK', titulo: 'Aula normal / OK', nivel: 'ok', prof: 'SIM', alunos: 'SIM' },
+    { valor: 'ATRASADO', titulo: 'Atrasado', nivel: 'atencao', prof: 'NÃO', alunos: 'SIM' },
+    { valor: 'ENSALADO S/ AULA (NO SISTEMA, FORA DO FISICO)', titulo: 'Ensalado s/ aula', sub: 'No sistema, fora do físico', nivel: 'problema', prof: 'NÃO', alunos: 'NÃO' },
+    { valor: 'NÃO ENSALADO (FORA DO SISTEMA)', titulo: 'Não ensalado', sub: 'Fora do sistema', nivel: 'problema', prof: 'SIM', alunos: 'SIM' }
+  ];
+  const BLOCOS = ['TÉRREO', 'BLOCO 1', 'BLOCO 2'];
+  const SEM_BLOCO = 'SEM BLOCO';
+  const CURSOS = ['MEDICINA', 'ODONTOLOGIA', 'BIOMEDICINA', 'PSICOLOGIA', 'ENFERMAGEM', 'OUTROS'];
+  const TURNOS = ['Manhã', 'Tarde', 'Noite', 'Todos'];
+  const SHEETJS = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+  const CHAVE_SESSAO = 'afya_ronda_sessao';
+  const PPTXGEN = 'https://cdn.jsdelivr.net/npm/pptxgenjs@4.0.1/dist/pptxgen.bundle.js';
+  const CHARTJS = 'https://cdn.jsdelivr.net/npm/chart.js@4.6.1/dist/chart.umd.min.js';
+  const CORES_TURNO = { ok: 'var(--ok)', atraso: 'var(--atencao)', semProf: 'var(--problema)', outros: '#94A3B8' };
+  const PALETAS_GESTOR = {
+    marca: { nome: 'Marca da unidade' },
+    azul: { nome: 'Azul', acento: '#1D4ED8', claro: '#60A5FA', fundo: '#0F2A5F' },
+    verde: { nome: 'Verde', acento: '#047857', claro: '#34D399', fundo: '#064E3B' },
+    roxo: { nome: 'Roxo', acento: '#6D28D9', claro: '#A78BFA', fundo: '#2E1065' },
+    laranja: { nome: 'Laranja', acento: '#C2410C', claro: '#FB923C', fundo: '#431407' },
+    vinho: { nome: 'Vinho', acento: '#9F1239', claro: '#FB7185', fundo: '#4C0519' },
+    grafite: { nome: 'Grafite', acento: '#475569', claro: '#94A3B8', fundo: '#0F172A' }
+  };
+  const PALETAS_GRAFICO = {
+    afya: { nome: 'Afya', cores: ['#D81B60', '#2563EB', '#F59E0B', '#059669', '#9333EA', '#0891B2'] },
+    vibrante: { nome: 'Vibrante', cores: ['#E11D48', '#2563EB', '#F59E0B', '#059669', '#9333EA', '#0891B2'] },
+    oceano: { nome: 'Oceano', cores: ['#1D6FD1', '#F59E0B', '#0D9F9E', '#7C3AED', '#DB2777', '#65A30D'] },
+    terra: { nome: 'Terra', cores: ['#C2410C', '#0F9D8A', '#CA8A04', '#7C5CBF', '#BE185D', '#3B82C4'] },
+    acessivel: { nome: 'Alto contraste', cores: ['#0072B2', '#E69F00', '#009E73', '#D55E00', '#56B4E9', '#CC79A7'] }
+  };
+  const MODELOS = {
+    colunas: { nome: 'Colunas', chartjs: 'bar' },
+    barras: { nome: 'Barras horizontais', chartjs: 'bar', horizontal: true },
+    colunas_emp: { nome: 'Colunas empilhadas', chartjs: 'bar', empilhado: true },
+    barras_emp: { nome: 'Barras empilhadas', chartjs: 'bar', horizontal: true, empilhado: true },
+    linha: { nome: 'Linha', chartjs: 'line', linha: true },
+    area: { nome: 'Área', chartjs: 'line', linha: true, area: true },
+    pizza: { nome: 'Pizza', chartjs: 'pie', circular: true },
+    rosca: { nome: 'Rosca', chartjs: 'doughnut', circular: true }
+  };
+
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => Array.from(document.querySelectorAll(s));
+  const esc = (v) => String(v === null || v === undefined ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  const estado = {
+    token: null, perfil: null, nome: '', config: null,
+    painel: null, bloco: BLOCOS[0], turno: 'Todos',
+    fila: [], enviando: false,
+    form: null, foto: null,
+    admin: null, importacao: null, relatorio: null, relatorioDados: null, pdfUrl: null,
+    view: 'view-login', confMinhas: false,
+    apres: { dados: null, itens: [], templates: null, chart: null }
+  };
+
+  /* ---------- Utilidades ---------- */
+
+  function api(funcao, ...args) {
+    if (!window.google || !google.script) {
+      // Versão instalável: fala com o Apps Script sem usar as contas Google do aparelho.
+      return fetch(window.AFYA_API_URL, { method: 'POST', credentials: 'omit', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: funcao, args }) })
+        .then((r) => r.json())
+        .then((r) => { if (!r.ok) throw new Error(r.erro); return r.resultado; });
+    }
+    return new Promise((resolve, reject) => {
+      google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[funcao](...args);
+    });
+  }
+
+  function msgErro(e) { return String((e && e.message) || e || 'Erro inesperado.').replace(/^(Error:\s*)?(VALIDACAO:\s*)?/, ''); }
+  const ehValidacao = (e) => /VALIDACAO:|Acesso restrito/.test(String((e && e.message) || e));
+  const ehSessao = (e) => /SESSAO_EXPIRADA/.test(String((e && e.message) || e));
+
+  let timerToast;
+  function toast(texto, erro) {
+    const t = $('#toast');
+    t.textContent = texto; t.className = 'toast-app' + (erro ? ' erro' : ''); t.hidden = false;
+    clearTimeout(timerToast);
+    timerToast = setTimeout(() => { t.hidden = true; }, erro ? 5000 : 2200);
+  }
+
+  function carregando(ligado) { $('#carregando').hidden = !ligado; }
+
+  function trataErro(e) {
+    if (ehSessao(e)) { toast('Sessão expirada. Entre novamente.', true); sair(false); return; }
+    toast(msgErro(e), true);
+  }
+
+  function mostrarView(id) { estado.view = id; $$('.view').forEach((v) => { v.hidden = v.id !== id; }); aplicarAparencia(); window.scrollTo(0, 0); }
+
+  function modal(id) { return bootstrap.Modal.getOrCreateInstance(document.getElementById(id)); }
+
+  function novoId() {
+    const a = new Uint8Array(12); crypto.getRandomValues(a);
+    return Array.from(a, (b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function guardar(s) { try { s ? localStorage.setItem(CHAVE_SESSAO, s) : localStorage.removeItem(CHAVE_SESSAO); } catch (e) { /* armazenamento indisponível */ } }
+  function lerGuardado() { try { return localStorage.getItem(CHAVE_SESSAO); } catch (e) { return null; } }
+
+  /* ---------- Marca ---------- */
+
+  function aplicarMarca(c) {
+    estado.config = Object.assign({}, estado.config, c);
+    aplicarAparencia();
+    $$('[data-marca-nome]').forEach((e) => { e.textContent = c.nomeUnidade; });
+    $$('[data-marca-logo]').forEach((e) => {
+      e.textContent = '';
+      e.classList.remove('tem-imagem');
+      const origem = c.logoImagem || c.logoUrl;
+      if (origem) {
+        const i = new Image(); i.alt = 'Logo'; i.src = origem;
+        i.onerror = () => { e.classList.remove('tem-imagem'); e.textContent = 'A'; };
+        e.classList.add('tem-imagem');
+        e.appendChild(i);
+      } else { e.textContent = 'A'; }
+    });
+  }
+
+  function desenharLogoAdmin(c) {
+    const previa = $('#mc-logo-previa');
+    previa.textContent = '';
+    if (c.logoImagem) { const i = new Image(); i.alt = 'Logo atual'; i.src = c.logoImagem; previa.appendChild(i); }
+    else previa.textContent = 'Sem imagem';
+    $('#mc-logo-remover').hidden = !c.logoImagem;
+  }
+
+  /** Reduz o logo no aparelho até caber no limite de armazenamento, mantendo a transparência. */
+  function prepararLogo(arquivo) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(arquivo), img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const larg = img.naturalWidth || 400, alt = img.naturalHeight || 400;
+        for (const lado of [480, 400, 320, 240, 160]) {
+          const k = Math.min(1, lado / Math.max(larg, alt));
+          const c = document.createElement('canvas');
+          c.width = Math.max(1, Math.round(larg * k)); c.height = Math.max(1, Math.round(alt * k));
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          const opcoes = [c.toDataURL('image/png'), c.toDataURL('image/webp', 0.85)];
+          const cabe = opcoes.find((d) => d.length <= 100000);
+          if (cabe) { resolve(cabe); return; }
+        }
+        reject(new Error('Não foi possível reduzir esta imagem. Tente outro arquivo.'));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Não foi possível ler esta imagem.')); };
+      img.src = url;
+    });
+  }
+
+  /* ---------- Sessão ---------- */
+
+  function entrarNoApp(r) {
+    estado.token = r.token; estado.perfil = r.perfil; estado.nome = r.nome;
+    guardar(r.token);
+    aplicarMarca(r.config);
+    $('#ins-voltar-admin').hidden = r.perfil !== 'ADMIN';
+    if (r.perfil === 'ADMIN') {
+      if (r.senhaPadrao) $('#adm-alerta-senha').hidden = false;
+      abrirAdmin();
+    } else {
+      abrirInspetor();
+    }
+    enviarFila(); // envia o que ficou pendente caso a sessão tenha expirado durante a ronda
+  }
+
+  async function login(ev) {
+    ev.preventDefault();
+    const erro = $('#login-erro'), btn = $('#login-entrar');
+    erro.hidden = true; btn.disabled = true; btn.textContent = 'Entrando…';
+    try {
+      const r = await api('autenticarUsuario', $('#login-senha').value);
+      $('#login-senha').value = '';
+      entrarNoApp(r);
+    } catch (e) {
+      erro.textContent = msgErro(e); erro.hidden = false;
+    } finally { btn.disabled = false; btn.textContent = 'Entrar'; }
+  }
+
+  function sair(avisarServidor) {
+    if (avisarServidor !== false && estado.fila.length && !confirm('Há inspeções pendentes de envio que serão perdidas. Sair mesmo assim?')) return;
+    if (avisarServidor !== false && estado.token) api('encerrarSessao', estado.token).catch(() => {});
+    if (avisarServidor !== false) estado.fila = [];
+    estado.token = null; guardar(null);
+    pararAtualizacao();
+    $('#adm-alerta-senha').hidden = true;
+    mostrarView('view-login');
+  }
+
+  /* ---------- Inspetor ---------- */
+
+  let timerPainel = null;
+  function pararAtualizacao() { clearInterval(timerPainel); timerPainel = null; }
+
+  function turnoAgora() { const h = new Date().getHours(); return h < 12 ? 'Manhã' : h < 18 ? 'Tarde' : 'Noite'; }
+  const nivelDe = (situacao) => (SITUACOES.find((s) => s.valor === situacao) || {}).nivel;
+  const tituloDe = (situacao) => (SITUACOES.find((s) => s.valor === situacao) || { titulo: situacao }).titulo;
+
+  function statusInspecao(i) {
+    if (!i) return { nivel: 'pendente', texto: 'Pendente' };
+    let nivel = nivelDe(i.situacao);
+    if (nivel === 'ok' && i.professorEmSala === 'NÃO') nivel = 'problema';
+    const marca = { ok: '✓', atencao: '!', problema: '✕' }[nivel];
+    return { nivel: nivel === 'ok' ? 'ok' : nivel, texto: `${marca} ${tituloDe(i.situacao)} · ${String(i.hora).slice(0, 5)}` };
+  }
+
+  async function abrirInspetor() {
+    mostrarView('view-inspetor');
+    estado.turno = turnoAgora();
+    desenharTurnos();
+    if (!estado.painel) $('#ins-salas').innerHTML = '<p class="vazio">Carregando salas…</p>';
+    await atualizarPainel();
+    pararAtualizacao();
+    timerPainel = setInterval(() => { if (!document.hidden) { atualizarPainel(); enviarFila(); } }, 60000);
+  }
+
+  async function atualizarPainel() {
+    try {
+      estado.painel = await api('obterPainelInspetor', estado.token);
+      desenharInspetor();
+    } catch (e) {
+      if (ehSessao(e)) trataErro(e);
+      else if (!estado.painel) $('#ins-salas').innerHTML = `<p class="vazio">Não foi possível carregar. Verifique a conexão.</p>`;
+    }
+  }
+
+  function chaveSala(bloco, sala) { return `${bloco}|${sala}`.toUpperCase(); }
+
+  /** Reúne salas da base e salas registradas fora da base, com a última vistoria do turno. */
+  function salasVisiveis() {
+    const p = estado.painel; if (!p) return [];
+    const todas = new Map();
+    p.salas.forEach((s) => todas.set(s.id, { id: s.id, bloco: s.bloco, sala: s.sala, aulas: s.aulas, foraBase: false }));
+    const inspecoes = p.inspecoes.concat(estado.fila.map((f) => f.previa));
+    const noTurno = (t) => estado.turno === 'Todos' || t === estado.turno;
+    const ultima = new Map();
+    inspecoes.forEach((i) => {
+      if (!noTurno(i.turno)) return;
+      const id = chaveSala(i.bloco, i.sala);
+      if (!todas.has(id)) todas.set(id, { id, bloco: i.bloco, sala: i.sala, aulas: [], foraBase: true });
+      ultima.set(id, i);
+    });
+    return Array.from(todas.values())
+      .filter((s) => s.foraBase || s.aulas.some((a) => noTurno(a.turno) || !a.turno))
+      .map((s) => Object.assign(s, { inspecao: ultima.get(s.id) }))
+      .sort((a, b) => String(a.sala).localeCompare(String(b.sala), 'pt-BR', { numeric: true }));
+  }
+
+  /** Aula mais relevante: a que está em andamento ou a próxima dentro do turno escolhido. */
+  function aulaDestaque(s) {
+    const aulas = s.aulas.filter((a) => estado.turno === 'Todos' || a.turno === estado.turno || !a.turno);
+    if (!aulas.length) return null;
+    const d = new Date();
+    const agora = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    return aulas.slice().reverse().find((a) => a.horario && a.horario.slice(0, 5) <= agora) || aulas[0];
+  }
+
+  function desenharTurnos() {
+    $('#ins-turnos').innerHTML = TURNOS.map((t) => `<button type="button" data-turno="${t}" class="${t === estado.turno ? 'ativa' : ''}" aria-pressed="${t === estado.turno}">${t}</button>`).join('');
+  }
+
+  function desenharInspetor() {
+    const salas = salasVisiveis();
+    const blocos = BLOCOS.slice();
+    if (salas.some((s) => s.bloco === SEM_BLOCO)) blocos.push(SEM_BLOCO);
+    if (blocos.indexOf(estado.bloco) < 0) estado.bloco = BLOCOS[0];
+
+    const naBase = salas.filter((s) => !s.foraBase);
+    const feitas = naBase.filter((s) => s.inspecao).length;
+    $('#ins-contador').textContent = `${feitas} de ${naBase.length} salas inspecionadas hoje`;
+    $('#ins-barra').style.width = naBase.length ? `${(feitas / naBase.length) * 100}%` : '0';
+    const pend = $('#ins-pendentes');
+    pend.hidden = !estado.fila.length;
+    pend.textContent = `${estado.fila.length} aguardando sinal`;
+
+    $('#ins-blocos').innerHTML = blocos.map((b) => {
+      const doBloco = salas.filter((s) => s.bloco === b);
+      const ok = doBloco.filter((s) => s.inspecao).length;
+      return `<button type="button" data-bloco="${esc(b)}" class="${b === estado.bloco ? 'ativa' : ''}">${esc(b)}<small>${ok}/${doBloco.length}</small></button>`;
+    }).join('');
+
+    const lista = salas.filter((s) => s.bloco === estado.bloco);
+    const alvo = $('#ins-salas');
+    if (!lista.length) {
+      const motivo = estado.painel.salas.length ? 'Nenhuma aula neste bloco e turno.' : 'Nenhuma aula na base para hoje.';
+      alvo.innerHTML = `<p class="vazio">${motivo}</p>`;
+      return;
+    }
+    alvo.innerHTML = lista.map((s) => {
+      const a = aulaDestaque(s) || {};
+      const st = statusInspecao(s.inspecao);
+      return `<button type="button" class="sala-card" data-sala-id="${esc(s.id)}" data-status="${st.nivel}">
+        <span class="sala-nome">${esc(s.sala)}</span>
+        <span class="sala-info">${esc(a.horario || (s.foraBase ? 'Fora da base' : 'Sem horário'))}</span>
+        <span class="sala-info">${esc(a.professor || '')}</span>
+        <span class="sala-info">${esc(a.disciplina || '')}</span>
+        <span class="sala-status">${esc(st.texto)}</span>
+      </button>`;
+    }).join('');
+  }
+
+  /* ---------- Formulário de inspeção ---------- */
+
+  function opcoesHorario(aulas) {
+    const daBase = Array.from(new Set(aulas.map((a) => a.horario).filter(Boolean)));
+    const faixas = [];
+    for (let h = 8; h <= 22; h++) faixas.push(String(h).padStart(2, '0') + ':00');
+    const resto = faixas.filter((f) => !daBase.some((b) => b.slice(0, 5) === f));
+    return { daBase, resto };
+  }
+
+  function preencherAula(a) {
+    $('#f-curso').value = (a && a.curso) || 'OUTROS';
+    $('#f-professor').value = (a && a.professor) || '';
+    $('#f-disciplina').value = (a && a.disciplina) || '';
+    estado.form.professorPrevisto = (a && a.professor) || '';
+    fecharTrocaProfessor();
+    mostrarProfessor();
+    $('#ins-contexto').textContent = a && a.disciplina ? a.disciplina : '';
+  }
+
+  function mostrarProfessor() { $('#f-prof-nome').textContent = $('#f-professor').value || 'Não informado'; }
+
+  function fecharTrocaProfessor() {
+    $('#f-prof-troca').hidden = true;
+    $('#f-prof-editar').setAttribute('aria-expanded', 'false');
+  }
+
+  function professoresDoDia() {
+    const nomes = new Set();
+    if (estado.painel) estado.painel.salas.forEach((s) => s.aulas.forEach((a) => String(a.professor || '').split(' / ').forEach((n) => { if (n.trim()) nomes.add(n.trim()); })));
+    return Array.from(nomes).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }
+
+  function abrirTrocaProfessor() {
+    if (!$('#f-prof-troca').hidden) { fecharTrocaProfessor(); return; }
+    const atual = $('#f-professor').value, nomes = professoresDoDia(), naLista = nomes.indexOf(atual) >= 0;
+    const lista = $('#f-prof-lista');
+    lista.innerHTML = '<option value="">Selecione o professor</option>' + nomes.map((n) => `<option value="${esc(n)}">${esc(n)}</option>`).join('') + '<option value="__outro">Outro (digitar o nome)</option>';
+    lista.value = naLista ? atual : (atual ? '__outro' : '');
+    $('#f-prof-outro').value = naLista ? '' : atual;
+    $('#f-prof-outro').hidden = lista.value !== '__outro';
+    $('#f-prof-troca').hidden = false;
+    $('#f-prof-editar').setAttribute('aria-expanded', 'true');
+  }
+
+  function aoEscolherProfessor() {
+    const v = $('#f-prof-lista').value, outro = v === '__outro';
+    $('#f-prof-outro').hidden = !outro;
+    if (outro) { $('#f-prof-outro').value = ''; $('#f-professor').value = ''; $('#f-prof-outro').focus(); }
+    else $('#f-professor').value = v;
+    mostrarProfessor();
+  }
+
+  function validarForm() {
+    const f = estado.form;
+    const sala = f.sala || $('#f-sala').value.trim();
+    $('#f-salvar').disabled = !(sala && $('#f-horario').value && f.situacao && f.prof && f.alunos);
+  }
+
+  function marcar(container, valor) { $$(`${container} button`).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.valor === valor))); }
+
+  function definirSituacao(valor) {
+    const s = SITUACOES.find((x) => x.valor === valor);
+    estado.form.situacao = valor; estado.form.prof = s.prof; estado.form.alunos = s.alunos;
+    marcar('#f-situacoes', valor); marcar('#f-prof', s.prof); marcar('#f-alunos', s.alunos);
+    validarForm();
+  }
+
+  function abrirFormulario(sala, horarioEscolhido) {
+    estado.form = { sala: sala ? sala.sala : '', bloco: sala ? sala.bloco : estado.bloco, aulas: sala ? sala.aulas : [], situacao: null, prof: null, alunos: null };
+    estado.foto = null;
+    $('#form-inspecao').reset();
+    $('#f-foto-previa').hidden = true;
+    $('#f-foto-btn').hidden = false;
+    marcar('#f-situacoes', ''); marcar('#f-prof', ''); marcar('#f-alunos', '');
+
+    const manual = !sala;
+    $('#ins-campos-sala').hidden = !manual;
+    $('#ins-titulo').textContent = manual ? 'Sala fora da base' : `Sala ${sala.sala}`;
+    $('#f-bloco').value = estado.form.bloco;
+    $('#f-detalhes').open = manual;
+
+    const { daBase, resto } = opcoesHorario(estado.form.aulas);
+    const destaque = sala ? aulaDestaque(sala) : null;
+    $('#f-horario').innerHTML = (daBase.length ? `<optgroup label="Aulas desta sala">${daBase.map((h) => `<option>${esc(h)}</option>`).join('')}</optgroup>` : '')
+      + `<optgroup label="Outras faixas">${manual ? '<option value="">Selecione</option>' : ''}${resto.map((h) => `<option>${h}</option>`).join('')}</optgroup>`;
+    const escolhida = horarioEscolhido ? estado.form.aulas.find((a) => a.horario === horarioEscolhido) : null;
+    const aulaInicial = escolhida || destaque;
+    if (aulaInicial && aulaInicial.horario) $('#f-horario').value = aulaInicial.horario;
+    else if (manual) $('#f-horario').value = '';
+    preencherAula(aulaInicial || null);
+
+    const contexto = sala && !aulaInicial ? 'Sala sem aula neste turno' : null;
+    if (contexto) $('#ins-contexto').textContent = contexto;
+    $('#f-salas-lista').innerHTML = estado.painel ? estado.painel.salas.map((s) => `<option value="${esc(s.sala)}">`).join('') : '';
+    relogio();
+    validarForm();
+    modal('modal-inspecao').show();
+  }
+
+  function relogio() { $('#f-relogio').textContent = new Date().toLocaleTimeString('pt-BR'); }
+
+  /** Reduz a foto no aparelho antes do envio: economiza dados e acelera a ronda. */
+  function comprimirFoto(arquivo) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(arquivo), img = new Image();
+      img.onload = () => {
+        const max = 1600, k = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        resolve(c.toDataURL('image/jpeg', 0.75));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Não foi possível ler esta imagem.')); };
+      img.src = url;
+    });
+  }
+
+  async function aoEscolherFoto(ev) {
+    const arq = ev.target.files[0]; if (!arq) return;
+    const btn = $('#f-foto-btn'); btn.textContent = 'Processando foto…';
+    try {
+      estado.foto = await comprimirFoto(arq);
+      $('#f-foto-previa img').src = estado.foto;
+      $('#f-foto-previa').hidden = false; btn.hidden = true;
+    } catch (e) { toast(msgErro(e), true); }
+    btn.textContent = 'Tirar ou anexar foto'; ev.target.value = '';
+  }
+
+  function salvarFormulario(ev) {
+    ev.preventDefault();
+    if ($('#f-salvar').disabled) return;
+    const f = estado.form, horario = $('#f-horario').value, sala = f.sala || $('#f-sala').value.trim();
+    const bloco = f.sala ? f.bloco : $('#f-bloco').value;
+    const professorFinal = $('#f-professor').value.trim();
+    const trocado = f.professorPrevisto && professorFinal && professorFinal !== f.professorPrevisto;
+    const observacao = [trocado ? `Professor trocado. Previsto: ${f.professorPrevisto}.` : '', $('#f-obs').value.trim()].filter(Boolean).join(' ');
+    const dados = {
+      id: novoId(), capturadoEm: Date.now(), sala, bloco, horario, situacao: f.situacao,
+      professorEmSala: f.prof, alunosEmSala: f.alunos, observacao,
+      curso: $('#f-curso').value, professor: professorFinal, disciplina: $('#f-disciplina').value.trim(),
+      fotoBase64: estado.foto
+    };
+    const h = parseInt(horario, 10);
+    const previa = { id: dados.id, bloco, sala, horario, turno: h < 12 ? 'Manhã' : h < 18 ? 'Tarde' : 'Noite', situacao: f.situacao, professorEmSala: f.prof, alunosEmSala: f.alunos, hora: new Date().toLocaleTimeString('pt-BR'), inspetor: estado.nome };
+    estado.fila.push({ dados, previa });
+    modal('modal-inspecao').hide();
+    desenharInspetor(); // atualização imediata do card
+    toast('Inspeção registrada');
+    enviarFila();
+  }
+
+  /** Envia em ordem. Sem sinal, mantém na fila; o id evita registro duplicado no reenvio. */
+  async function enviarFila() {
+    if (estado.enviando || !estado.fila.length || !estado.token) return;
+    estado.enviando = true;
+    try {
+      while (estado.fila.length) {
+        const item = estado.fila[0];
+        try {
+          const salvo = await api('salvarInspecao', item.dados, estado.token);
+          estado.fila.shift();
+          if (estado.painel && !estado.painel.inspecoes.some((i) => i.id === salvo.id)) estado.painel.inspecoes.push(salvo);
+          desenharInspetor();
+        } catch (e) {
+          if (ehValidacao(e)) {
+            estado.fila.shift();
+            toast(`Sala ${item.previa.sala}: ${msgErro(e)}`, true);
+            desenharInspetor();
+          } else if (ehSessao(e)) {
+            toast('Sessão expirada. Entre novamente: as inspeções pendentes serão enviadas.', true);
+            sair(false);
+            break;
+          } else {
+            desenharInspetor();
+            break; // sem conexão: tenta de novo depois
+          }
+        }
+      }
+    } finally { estado.enviando = false; }
+  }
+
+  /* ---------- Administrador ---------- */
+
+  async function abrirAdmin() {
+    mostrarView('view-admin');
+    pararAtualizacao();
+    carregando(true);
+    try {
+      estado.admin = await api('obterPainelAdmin', estado.token);
+      desenharAdmin();
+      await carregarDashboard();
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  function trocarAbaAdmin(nome) {
+    $$('#adm-abas button').forEach((b) => b.classList.toggle('ativa', b.dataset.aba === nome));
+    $$('.aba-admin').forEach((s) => { s.hidden = s.id !== `aba-${nome}`; });
+    if (nome === 'apresentacao' && !estado.apres.dados) { desenharListaSlides(); carregarApresentacao(); }
+  }
+
+  function desenharAdmin() {
+    const a = estado.admin;
+    const opcoes = a.semestres.map((s) => `<option${s === a.semestreAtivo ? ' selected' : ''}>${esc(s)}</option>`).join('');
+    $('#dash-semestre').innerHTML = opcoes;
+    $('#pl-semestre-ativo').innerHTML = opcoes;
+    $('#pl-abrir-bd').href = a.urlPlanilha;
+    $('#pl-historico').innerHTML = a.uploads.length ? a.uploads.map((u) => `<tr><td>${esc(u.data)}</td><td>${esc(u.semestre)}</td><td>${esc(u.arquivo)}</td><td>${esc(u.lidas)}</td><td>${esc(u.inseridas)}</td><td>${esc(u.duplicadas)}</td><td>${esc(u.ignoradas)}</td><td>${esc(u.usuario)}</td></tr>`).join('') : '<tr><td colspan="8" class="texto-suave">Nenhuma importação ainda.</td></tr>';
+    desenharUsuarios();
+    const c = a.config;
+    desenharLogoAdmin(c);
+    periodoPadrao();
+    $('#mc-nome').value = c.nomeUnidade; $('#mc-logo').value = c.logoUrl; $('#mc-primaria').value = c.corPrimaria; $('#mc-secundaria').value = c.corSecundaria;
+  }
+
+  function desenharUsuarios() {
+    const lista = estado.admin.usuarios;
+    $('#adm-alerta-senha').hidden = !lista.some((u) => u.senhaPadrao && u.ativo);
+    const atual = $('#rel-colaborador').value;
+    $('#rel-colaborador').innerHTML = '<option value="">Todos</option>' + lista.map((u) => `<option value="${esc(u.id)}">${esc(u.nome)}${u.ativo ? '' : ' (inativo)'}</option>`).join('');
+    $('#rel-colaborador').value = atual;
+    if (!$('#rel-colaborador').value) $('#rel-colaborador').value = '';
+    $('#us-lista').innerHTML = lista.map((u) => `<tr>
+      <td>${esc(u.nome)}${u.senhaPadrao ? ' <span class="etiqueta atencao">senha padrão</span>' : ''}</td>
+      <td>${u.perfil === 'ADMIN' ? 'Administrador' : 'Inspetor'}</td>
+      <td><span class="etiqueta ${u.ativo ? 'ok' : 'problema'}">${u.ativo ? 'Ativo' : 'Inativo'}</span></td>
+      <td class="acoes"><button class="btn btn-sm btn-fantasma" data-editar="${esc(u.id)}">Editar</button>
+      <button class="btn btn-sm btn-fantasma" data-status-id="${esc(u.id)}" data-ativar="${u.ativo ? '0' : '1'}">${u.ativo ? 'Desativar' : 'Ativar'}</button></td></tr>`).join('');
+  }
+
+  function abrirUsuario(u) {
+    $('#form-usuario').reset();
+    $('#us-titulo').textContent = u ? 'Editar usuário' : 'Novo usuário';
+    $('#us-id').value = u ? u.id : ''; $('#us-nome').value = u ? u.nome : ''; $('#us-perfil').value = u ? u.perfil : 'INSPETOR';
+    $('#us-senha').required = !u;
+    $('#us-ajuda').textContent = u ? 'Deixe em branco para manter a senha atual. Mínimo de 8 caracteres.' : 'Mínimo de 8 caracteres.';
+    modal('modal-usuario').show();
+  }
+
+  async function salvarUsuarioForm(ev) {
+    ev.preventDefault(); carregando(true);
+    try {
+      estado.admin.usuarios = await api('salvarUsuario', { id: $('#us-id').value, nome: $('#us-nome').value, perfil: $('#us-perfil').value, senha: $('#us-senha').value }, estado.token);
+      desenharUsuarios(); modal('modal-usuario').hide(); toast('Usuário salvo');
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  /* ---------- Dashboard ---------- */
+
+  async function carregarDashboard() {
+    const filtros = { semestre: $('#dash-semestre').value, de: $('#dash-de').value, ate: $('#dash-ate').value };
+    desenharDashboard(await api('obterDashboard', filtros, estado.token));
+  }
+
+  function desenharDashboard(m) {
+    const kpi = (rotulo, valor, nota) => `<div class="kpi"><span>${rotulo}</span><strong>${valor}</strong><small>${nota || '&nbsp;'}</small></div>`;
+    $('#dash-kpis').innerHTML = [
+      kpi('Total de rondas', m.total, `Semestre ${esc(m.semestre)}`),
+      kpi('Assiduidade de professores', m.assiduidade === null ? '—' : `${String(m.assiduidade).replace('.', ',')}%`, 'Atraso não conta como falta'),
+      kpi('Aulas válidas', m.validas, 'Aula normal / OK'),
+      kpi('Atrasadas', m.atrasadas, ''),
+      kpi('Professores faltantes', m.faltas, 'Registros de ausência'),
+      kpi('Aulas não iniciadas', m.naoIniciadas, 'Ensalado sem aula'),
+      kpi('Turno crítico', m.turnoCritico ? esc(m.turnoCritico.turno) : '—', m.turnoCritico ? `${String(m.turnoCritico.taxa).replace('.', ',')}% com ocorrência` : 'Sem ocorrências')
+    ].join('');
+
+    const vazio = '<p class="texto-suave mb-0">Sem dados no período.</p>';
+    const maxTaxa = Math.max(1, ...m.cursosOfensores.map((c) => c.taxa));
+    $('#dash-cursos').innerHTML = m.cursosOfensores.length ? m.cursosOfensores.map((c) => {
+      const dica = `${c.curso}: ${c.atrasos} atraso(s), ${c.semProfessor} sem professor, ${c.total} ronda(s)`;
+      return `<div class="barra-linha" title="${esc(dica)}"><span class="barra-rotulo">${esc(c.curso)}</span>
+        <div class="barra-trilha"><div class="barra-valor-mark" style="width:${(c.taxa / maxTaxa) * 100}%"></div></div>
+        <span class="barra-numero"><b>${String(c.taxa).replace('.', ',')}%</b> ${c.ocorrencias} de ${c.total}</span></div>`;
+    }).join('') : vazio;
+
+    const partes = [['ok', 'Normal'], ['atraso', 'Atraso'], ['semProf', 'Sem professor'], ['outros', 'Outras situações']];
+    const comDados = m.turnos.some((t) => t.total);
+    $('#dash-turnos').innerHTML = comDados ? `<div class="legenda">${partes.map(([k, r]) => `<span><i style="background:${CORES_TURNO[k]}"></i>${r}</span>`).join('')}</div>`
+      + m.turnos.map((t) => {
+        const val = { ok: t.ok, atraso: t.atrasos, semProf: t.semProfessor, outros: t.outros };
+        return `<div class="pilha-rotulo">${esc(t.turno)} <small>${t.total} ronda(s) · ${String(t.taxa).replace('.', ',')}% com ocorrência</small></div>
+          <div class="pilha">${partes.filter(([k]) => val[k]).map(([k, r]) => `<i title="${r}: ${val[k]}" style="flex:${val[k]};background:${CORES_TURNO[k]}"></i>`).join('')}</div>`;
+      }).join('') : vazio;
+
+    $('#dash-professores').innerHTML = m.professoresFaltantes.length ? `<ol class="ranking">${m.professoresFaltantes.map((p) => `<li><span>${esc(p.professor)} <small>${esc(p.curso)}</small></span><b>${p.faltas}</b></li>`).join('')}</ol>` : vazio;
+
+    $('#dash-recentes').innerHTML = m.recentes.length ? m.recentes.map((r) => {
+      const n = nivelDe(r.situacao);
+      return `<tr><td>${esc(r.data.split('-').reverse().join('/'))}</td><td>${esc(String(r.hora).slice(0, 5))}</td><td>${esc(r.bloco)} · ${esc(r.sala)}</td>
+      <td><span class="etiqueta ${n}">${esc(tituloDe(r.situacao))}</span></td><td>${esc(r.curso)}</td><td>${esc(r.professor)}</td><td>${esc(r.inspetor)}</td><td>${esc(r.observacao)}</td>
+      <td>${r.temFoto ? `<button class="btn btn-sm btn-fantasma" data-foto="${esc(r.id)}">Ver</button>` : ''}</td></tr>`;
+    }).join('') : '<tr><td colspan="9" class="texto-suave">Sem rondas no período.</td></tr>';
+  }
+
+  async function verFoto(id) {
+    $('#fo-corpo').textContent = 'Carregando…';
+    modal('modal-foto').show();
+    try {
+      const f = await api('obterFotoInspecao', id, estado.token);
+      const img = new Image(); img.src = f.dataUrl; img.className = 'img-fluid rounded'; img.alt = 'Foto da inspeção';
+      $('#fo-corpo').replaceChildren(img);
+    } catch (e) { $('#fo-corpo').textContent = msgErro(e); }
+  }
+
+  /* ---------- Relatório ---------- */
+
+  function dataLocal(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+
+  function periodoPadrao() {
+    if ($('#rel-de').value) return;
+    const hoje = new Date();
+    $('#rel-de').value = dataLocal(new Date(hoje.getFullYear(), hoje.getMonth(), 1));
+    $('#rel-ate').value = dataLocal(hoje);
+  }
+
+  const filtrosRelatorio = () => ({ de: $('#rel-de').value, ate: $('#rel-ate').value, inspetorId: $('#rel-colaborador').value });
+
+  function limparPdf() {
+    if (estado.pdfUrl) URL.revokeObjectURL(estado.pdfUrl);
+    estado.pdfUrl = null;
+    $('#rel-baixar').hidden = true;
+  }
+
+  async function gerarRelatorio(ev) {
+    ev.preventDefault(); limparPdf(); carregando(true);
+    try {
+      estado.relatorio = filtrosRelatorio();
+      desenharRelatorio(await api('obterRelatorioInspecoes', estado.relatorio, estado.token));
+    } catch (e) { $('#rel-pdf').disabled = true; trataErro(e); } finally { carregando(false); }
+  }
+
+  function desenharRelatorio(r) {
+    $('#rel-pdf').disabled = !r.total;
+    $('#rel-excel').disabled = !r.total;
+    estado.relatorioDados = r;
+    const dataBr = (d) => d.split('-').reverse().join('/');
+    if (!r.total) { $('#rel-saida').innerHTML = '<p class="texto-suave mb-0">Nenhuma inspeção encontrada no período.</p>'; return; }
+    $('#rel-saida').innerHTML = `<p class="rel-total">${r.total} inspeções de ${dataBr(r.de)} a ${dataBr(r.ate)}</p>
+      <h3 class="rel-subtitulo">Resumo por colaborador</h3>
+      <div class="table-responsive"><table class="table tabela"><thead><tr><th>Colaborador</th><th>Rondas</th><th>Normais</th><th>Atrasos</th><th>Ensalado s/ aula</th><th>Não ensalado</th><th>Sem professor</th><th>Com foto</th></tr></thead><tbody>
+      ${r.resumo.map((c) => `<tr><td>${esc(c.colaborador)}</td><td>${c.total}</td><td>${c.normais}</td><td>${c.atrasos}</td><td>${c.semAula}</td><td>${c.naoEnsaladas}</td><td>${c.semProfessor}</td><td>${c.comFoto}</td></tr>`).join('')}</tbody></table></div>
+      <h3 class="rel-subtitulo">Inspeções registradas</h3>
+      <div class="table-responsive"><table class="table tabela"><thead><tr><th>Verificação</th><th>Colaborador</th><th>Local</th><th>Aula</th><th>Situação</th><th>Prof.</th><th>Alunos</th><th>Curso</th><th>Professor</th><th>Disciplina</th><th>Observação</th><th>Foto</th></tr></thead><tbody>
+      ${r.linhas.map((l) => `<tr><td>${esc(dataBr(l.data))} ${esc(String(l.hora).slice(0, 5))}</td><td>${esc(l.colaborador)}</td><td>${esc(l.bloco)} · ${esc(l.sala)}</td><td>${esc(l.horario)}</td><td>${esc(l.situacao)}</td><td>${esc(l.professorEmSala)}</td><td>${esc(l.alunosEmSala)}</td><td>${esc(l.curso)}</td><td>${esc(l.professor)}</td><td>${esc(l.disciplina)}</td><td>${esc(l.observacao)}</td><td>${l.temFoto ? 'Sim' : ''}</td></tr>`).join('')}</tbody></table></div>`;
+  }
+
+  async function gerarPdf() {
+    if (!estado.relatorio) return;
+    limparPdf(); carregando(true);
+    try {
+      const pdf = await api('gerarRelatorioPdf', estado.relatorio, estado.token);
+      const bin = atob(pdf.base64), bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      estado.pdfUrl = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+      const link = $('#rel-baixar');
+      link.href = estado.pdfUrl; link.download = pdf.nome; link.hidden = false;
+      link.click();
+      toast('PDF gerado. Se não baixar, toque em Baixar PDF.');
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  /* ---------- Bibliotecas e downloads ---------- */
+
+  function carregarScript(url, global, erro) {
+    if (window[global]) return Promise.resolve();
+    return new Promise((ok, falha) => {
+      const s = document.createElement('script'); s.src = url; s.onload = ok;
+      s.onerror = () => falha(new Error(erro));
+      document.head.appendChild(s);
+    });
+  }
+
+  function baixarBlob(blob, nome) {
+    const url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = nome;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
+  async function salvarExcel(abas, nome) {
+    await carregarScript(SHEETJS, 'XLSX', 'Não foi possível carregar o gerador de Excel. Verifique a conexão.');
+    const wb = XLSX.utils.book_new();
+    abas.forEach((a) => {
+      const ws = XLSX.utils.aoa_to_sheet([a.cabecalho].concat(a.linhas));
+      ws['!cols'] = a.cabecalho.map((c, i) => ({ wch: Math.min(40, Math.max(String(c).length, ...a.linhas.slice(0, 200).map((l) => String(l[i] === undefined ? '' : l[i]).length)) + 2) }));
+      ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: a.linhas.length, c: a.cabecalho.length - 1 } }) };
+      XLSX.utils.book_append_sheet(wb, ws, a.nome);
+    });
+    baixarBlob(new Blob([XLSX.write(wb, { type: 'array', bookType: 'xlsx' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), nome);
+  }
+
+  async function excelRelatorio() {
+    const r = estado.relatorioDados; if (!r) return;
+    carregando(true);
+    try {
+      await salvarExcel([
+        { nome: 'Resumo', cabecalho: ['Colaborador', 'Rondas', 'Normais', 'Atrasos', 'Ensalado s/ aula', 'Não ensalado', 'Sem professor', 'Com foto'],
+          linhas: r.resumo.map((c) => [c.colaborador, c.total, c.normais, c.atrasos, c.semAula, c.naoEnsaladas, c.semProfessor, c.comFoto]) },
+        { nome: 'Inspeções', cabecalho: ['Data', 'Hora da verificação', 'Colaborador', 'Bloco', 'Sala', 'Horário da aula', 'Turno', 'Situação', 'Professor em sala', 'Alunos em sala', 'Curso', 'Professor', 'Disciplina', 'Observação', 'Foto (link)'],
+          linhas: r.linhas.map((l) => [l.data.split('-').reverse().join('/'), l.hora, l.colaborador, l.bloco, l.sala, l.horario, l.turno, l.situacao, l.professorEmSala, l.alunosEmSala, l.curso, l.professor, l.disciplina, l.observacao, l.fotoUrl || '']) }
+      ], `rondas_${r.de}_a_${r.ate}.xlsx`);
+      toast('Excel gerado');
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  async function excelBase() {
+    const semestre = $('#pl-semestre-ativo').value;
+    carregando(true);
+    try {
+      const linhas = await api('obterBaseAcademica', semestre, estado.token);
+      if (!linhas.length) { toast('Nenhuma aula importada neste semestre.', true); return; }
+      await salvarExcel([{ nome: 'Base acadêmica', cabecalho: ['Semestre', 'Dia', 'Data', 'Horário', 'Turno', 'Bloco', 'Sala', 'Curso', 'Curso (original)', 'Professor', 'Disciplina', 'Turma', 'Arquivo', 'Importado em'], linhas }], `base_academica_${semestre}.xlsx`);
+      toast('Excel gerado');
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  /* ---------- Aparência do gestor ---------- */
+
+  function lerPreferencia(k, padrao) { try { return localStorage.getItem(k) || padrao; } catch (e) { return padrao; } }
+  function gravarPreferencia(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* armazenamento indisponível */ } }
+
+  function aplicarAparencia() {
+    const gestor = estado.view === 'view-admin', r = document.documentElement;
+    const tema = gestor ? lerPreferencia('afya_tema', 'escuro') : 'escuro';
+    r.setAttribute('data-tema', tema);
+    r.setAttribute('data-bs-theme', tema === 'claro' ? 'light' : 'dark');
+    const c = estado.config || { corPrimaria: '#E91E63', corSecundaria: '#0C2340' };
+    const p = gestor ? PALETAS_GESTOR[lerPreferencia('afya_paleta', 'marca')] : null;
+    const acento = p && p.acento ? p.acento : (c.corPrimaria === '#E91E63' ? '#D81B60' : c.corPrimaria);
+    r.style.setProperty('--primaria', p && p.acento ? p.acento : c.corPrimaria);
+    r.style.setProperty('--primaria-escura', acento);
+    r.style.setProperty('--secundaria', p && p.fundo ? p.fundo : c.corSecundaria);
+    r.style.setProperty('--grafico', tema === 'claro' ? acento : (p && p.claro ? p.claro : c.corPrimaria));
+    if (estado.apres.dados && gestor && !$('#aba-apresentacao').hidden) desenharPrevia();
+  }
+
+  function desenharOpcoesAparencia() {
+    const tema = lerPreferencia('afya_tema', 'escuro'), pal = lerPreferencia('afya_paleta', 'marca');
+    marcar('#ap-tema', tema);
+    const marca = estado.config || {};
+    $('#ap-paletas').innerHTML = Object.keys(PALETAS_GESTOR).map((k) => {
+      const p = PALETAS_GESTOR[k];
+      return `<button type="button" data-paleta="${k}" aria-pressed="${k === pal}"><i style="background:${p.acento || esc(marca.corPrimaria)}"></i><i style="background:${p.fundo || esc(marca.corSecundaria)}"></i>${p.nome}</button>`;
+    }).join('');
+  }
+
+  /* ---------- Lanterna ---------- */
+
+  const lanterna = { stream: null, video: null };
+  const espera = (ms) => new Promise((ok) => setTimeout(ok, ms));
+
+  function pararStream(s) { s.getTracks().forEach((t) => t.stop()); }
+
+  function estadoBotaoLanterna(ligada) {
+    const b = $('#ins-lanterna');
+    b.setAttribute('aria-pressed', String(ligada));
+    b.setAttribute('aria-label', ligada ? 'Desligar lanterna' : 'Ligar lanterna');
+  }
+
+  function desligarLanterna() {
+    if (lanterna.stream) pararStream(lanterna.stream);
+    if (lanterna.video) { lanterna.video.srcObject = null; lanterna.video.remove(); }
+    lanterna.stream = lanterna.video = null;
+    estadoBotaoLanterna(false);
+  }
+
+  function criarVideoLanterna(stream) {
+    const v = document.createElement('video');
+    v.muted = true; v.playsInline = true; v.className = 'video-lanterna'; v.srcObject = stream;
+    document.body.appendChild(v);
+    v.play().catch(() => {});
+    return v;
+  }
+
+  /** O Android só informa o flash alguns instantes depois que a câmera começa a rodar. */
+  async function esperarFlash(track) {
+    if (window.ImageCapture) { try { await new ImageCapture(track).getPhotoCapabilities(); } catch (e) { /* segue pela verificação abaixo */ } }
+    for (let i = 0; i < 14; i++) {
+      if (track.getCapabilities && track.getCapabilities().torch) return true;
+      await espera(150);
+    }
+    return false;
+  }
+
+  async function tentarCamera(video) {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video });
+    const v = criarVideoLanterna(stream), track = stream.getVideoTracks()[0];
+    if (await esperarFlash(track)) return { stream, v, track };
+    pararStream(stream); v.srcObject = null; v.remove();
+    return null;
+  }
+
+  async function localizarFlash() {
+    const principal = await tentarCamera({ facingMode: { ideal: 'environment' }, width: { ideal: 640 } });
+    if (principal) return principal;
+    const cameras = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput').slice(0, 6);
+    for (const c of cameras) {
+      const r = await tentarCamera({ deviceId: { exact: c.deviceId } }).catch(() => null);
+      if (r) return r;
+    }
+    return null;
+  }
+
+  /** Liga o flash em segundo plano: o app continua na tela, com todas as funções. */
+  async function alternarLanterna() {
+    const b = $('#ins-lanterna');
+    if (lanterna.stream) { desligarLanterna(); return; }
+    if (b.disabled) return;
+    const atalho = 'Use a lanterna pelo atalho do celular.';
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) { toast(`O iPhone não permite ligar o flash por sites. ${atalho}`, true); return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { toast(`Este navegador não dá acesso ao flash. ${atalho}`, true); return; }
+    b.disabled = true;
+    try {
+      const r = await localizarFlash();
+      if (!r) { toast(`Este celular não libera o flash para o navegador. ${atalho}`, true); return; }
+      await r.track.applyConstraints({ advanced: [{ torch: true }] });
+      lanterna.stream = r.stream; lanterna.video = r.v;
+      r.track.addEventListener('ended', desligarLanterna);
+      estadoBotaoLanterna(true);
+    } catch (e) {
+      const negado = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
+      toast(negado ? 'A câmera está bloqueada para este site. Permita o acesso à câmera nas configurações do navegador.' : `Não foi possível ligar o flash (${(e && e.name) || 'erro'}). ${atalho}`, true);
+    } finally { b.disabled = false; }
+  }
+
+  /* ---------- Conferência do inspetor ---------- */
+
+  function horaAgora() { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+
+  function dadosConferencia() {
+    const p = estado.painel, noTurno = (t) => estado.turno === 'Todos' || t === estado.turno || !t;
+    const feitas = p.inspecoes.concat(estado.fila.map((f) => f.previa)).filter((i) => noTurno(i.turno));
+    const faltam = [], proximas = [], agora = horaAgora();
+    p.salas.forEach((s) => s.aulas.filter((a) => noTurno(a.turno)).forEach((a) => {
+      const feita = feitas.some((i) => chaveSala(i.bloco, i.sala) === s.id && (!a.horario || String(i.horario).slice(0, 5) === a.horario.slice(0, 5)));
+      if (feita) return;
+      (a.horario && a.horario.slice(0, 5) > agora ? proximas : faltam).push({ sala: s, aula: a });
+    }));
+    return { feitas, faltam, proximas };
+  }
+
+  function itemAula(x, clicavel) {
+    const a = x.aula, info = `<strong>${esc(x.sala.sala)}</strong> · ${esc(a.horario || 'Sem horário')}<small>${esc([x.sala.bloco, a.professor, a.disciplina].filter(Boolean).join(' · '))}</small>`;
+    return clicavel ? `<button type="button" class="cf-item" data-cf-sala="${esc(x.sala.id)}" data-cf-horario="${esc(a.horario)}">${info}</button>` : `<div class="cf-item">${info}</div>`;
+  }
+
+  function desenharConferencia() {
+    const d = dadosConferencia();
+    const so = estado.confMinhas;
+    const feitas = (so ? d.feitas.filter((i) => i.inspetor === estado.nome) : d.feitas).slice().reverse();
+    $('#cf-contexto').textContent = `${estado.painel.hoje.split('-').reverse().join('/')} · atualizado às ${horaAgora()}`;
+    $('#cf-turnos').innerHTML = TURNOS.map((t) => `<button type="button" data-cf-turno="${t}" class="${t === estado.turno ? 'ativa' : ''}" aria-pressed="${t === estado.turno}">${t}</button>`).join('');
+    $('#cf-resumo').innerHTML = `<div><strong>${d.faltam.length}</strong>Faltam</div><div><strong>${d.proximas.length}</strong>Ainda não começaram</div><div><strong>${d.feitas.length}</strong>Inspeções feitas</div>`;
+    const bloco = (b) => BLOCOS.concat(SEM_BLOCO).indexOf(b);
+    d.faltam.sort((x, y) => bloco(x.sala.bloco) - bloco(y.sala.bloco));
+    d.proximas.sort((x, y) => String(x.aula.horario).localeCompare(String(y.aula.horario)));
+    $('#cf-corpo').innerHTML = `<h3 class="cf-secao">Faltam inspecionar</h3>${d.faltam.length ? d.faltam.map((x) => itemAula(x, true)).join('') : '<p class="texto-suave">Nenhuma aula pendente neste turno.</p>'}
+      ${d.proximas.length ? `<h3 class="cf-secao">Ainda não começaram</h3>${d.proximas.map((x) => itemAula(x, false)).join('')}` : ''}
+      <h3 class="cf-secao">Já inspecionadas</h3>
+      <div class="form-check cf-filtro"><input class="form-check-input" type="checkbox" id="cf-minhas"${so ? ' checked' : ''}><label class="form-check-label" for="cf-minhas">Mostrar só as minhas</label></div>
+      ${feitas.length ? feitas.map((i) => `<div class="cf-item"><strong>${esc(i.sala)}</strong> · ${esc(statusInspecao(i).texto)}<small>${esc([i.bloco, i.horario, i.inspetor].filter(Boolean).join(' · '))}</small></div>`).join('') : '<p class="texto-suave">Nenhuma inspeção registrada.</p>'}`;
+  }
+
+  async function abrirConferencia() {
+    if (!estado.painel) { toast('Aguarde o carregamento das salas.', true); return; }
+    desenharConferencia();
+    modal('modal-conferencia').show();
+    await atualizarPainel();
+    desenharConferencia();
+  }
+
+  /* ---------- Gráficos e PowerPoint ---------- */
+
+  const NOMES_KPI = (k) => [['Total de rondas', k.total], ['Assiduidade', k.assiduidade === null ? '—' : `${String(k.assiduidade).replace('.', ',')}%`], ['Aulas válidas', k.validas], ['Atrasadas', k.atrasadas], ['Professores faltantes', k.faltas], ['Turno crítico', k.turnoCritico || '—']];
+
+  /** Prepara os dados do jeito que o modelo pede: pizza e rosca agrupam o excesso em "Outros". */
+  function dadosModelo(ind, modelo, paleta) {
+    const m = MODELOS[modelo], cores = PALETAS_GRAFICO[paleta].cores;
+    let categorias = ind.categorias.slice(), series = ind.series.map((s) => ({ nome: s.nome, valores: s.valores.slice() }));
+    if (m.circular) {
+      let pares = categorias.map((c, i) => [c, series[0].valores[i]]).filter((p) => p[1] > 0);
+      if (pares.length > cores.length) {
+        pares.sort((a, b) => b[1] - a[1]);
+        const resto = pares.slice(cores.length - 1).reduce((t, p) => t + p[1], 0);
+        pares = pares.slice(0, cores.length - 1).concat([['Outros', Math.round(resto * 10) / 10]]);
+      }
+      categorias = pares.map((p) => p[0]);
+      series = [{ nome: series[0].nome, valores: pares.map((p) => p[1]) }];
+    }
+    const multi = series.length > 1;
+    const colorirPontos = !multi && !m.linha && categorias.length <= cores.length;
+    return { categorias, series, cores, multi, colorirPontos, vazio: !categorias.length || series.every((s) => s.valores.every((v) => !v)) };
+  }
+
+  function preencherModelos() {
+    const ind = indicadorAtual(); if (!ind) return;
+    const multi = ind.series.length > 1, atual = $('#ap-modelo').value;
+    const lista = Object.keys(MODELOS).filter((k) => (multi ? !MODELOS[k].circular : !MODELOS[k].empilhado));
+    $('#ap-modelo').innerHTML = lista.map((k) => `<option value="${k}">${MODELOS[k].nome}</option>`).join('');
+    if (lista.indexOf(atual) >= 0) $('#ap-modelo').value = atual;
+    else $('#ap-modelo').value = multi ? 'colunas_emp' : 'colunas';
+  }
+
+  function indicadorAtual() { const d = estado.apres.dados; return d ? d.indicadores[$('#ap-indicador').value] : null; }
+
+  async function desenharPrevia() {
+    const ind = indicadorAtual(); if (!ind) return;
+    try { await carregarScript(CHARTJS, 'Chart', 'Não foi possível carregar os gráficos. Verifique a conexão.'); } catch (e) { toast(msgErro(e), true); return; }
+    const modelo = $('#ap-modelo').value, m = MODELOS[modelo], p = dadosModelo(ind, modelo, $('#ap-paleta').value);
+    if (estado.apres.chart) { estado.apres.chart.destroy(); estado.apres.chart = null; }
+    $('#ap-vazio').hidden = !p.vazio;
+    $('#ap-canvas').hidden = p.vazio;
+    $('#ap-adicionar').disabled = p.vazio;
+    if (p.vazio) return;
+    const estilo = getComputedStyle(document.documentElement);
+    const texto = estilo.getPropertyValue('--texto-2').trim(), grade = estilo.getPropertyValue('--borda').trim();
+    Chart.defaults.color = texto;
+    const datasets = p.series.map((s, i) => {
+      const cor = p.cores[i % p.cores.length];
+      return { label: s.nome, data: s.valores, backgroundColor: p.colorirPontos ? p.cores.slice(0, p.categorias.length) : cor, borderColor: m.circular ? estilo.getPropertyValue('--card').trim() : cor,
+        borderWidth: m.circular ? 2 : (m.linha ? 2 : 0), borderRadius: m.circular || m.linha ? 0 : 4, fill: !!m.area, tension: 0.25, pointRadius: p.categorias.length > 25 ? 0 : 4, maxBarThickness: 56 };
+    });
+    const circular = !!m.circular;
+    estado.apres.chart = new Chart($('#ap-canvas'), {
+      type: m.chartjs,
+      data: { labels: p.categorias, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false, indexAxis: m.horizontal ? 'y' : 'x', cutout: m.chartjs === 'doughnut' ? '58%' : undefined,
+        plugins: { legend: { display: p.multi || circular, position: 'bottom' }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${String(c.parsed.y !== undefined && !circular ? (m.horizontal ? c.parsed.x : c.parsed.y) : c.parsed).replace('.', ',')}${ind.unidade === '%' ? '%' : ''}` } } },
+        scales: circular ? {} : { x: { stacked: !!m.empilhado, beginAtZero: true, grid: { color: m.horizontal ? grade : 'transparent' } }, y: { stacked: !!m.empilhado, beginAtZero: true, grid: { color: m.horizontal ? 'transparent' : grade } } }
+      }
+    });
+  }
+
+  function aoMudarIndicador() {
+    const ind = indicadorAtual(); if (!ind) return;
+    $('#ap-titulo').value = ind.titulo;
+    preencherModelos();
+    desenharPrevia();
+  }
+
+  async function carregarApresentacao(ev) {
+    if (ev) ev.preventDefault();
+    if (!$('#ap-de').value) { $('#ap-de').value = $('#rel-de').value; $('#ap-ate').value = $('#rel-ate').value; }
+    carregando(true);
+    try {
+      if (!estado.apres.templates) { estado.apres.templates = await api('obterTemplatesApresentacao', estado.token); desenharTemplates(); }
+      const d = await api('obterDadosGraficos', { de: $('#ap-de').value, ate: $('#ap-ate').value }, estado.token);
+      estado.apres.dados = d;
+      $('#ap-total').textContent = `${d.total} rondas no período`;
+      const atual = $('#ap-indicador').value;
+      $('#ap-indicador').innerHTML = Object.keys(d.indicadores).map((k) => `<option value="${k}">${esc(d.indicadores[k].titulo)}</option>`).join('');
+      if (atual) $('#ap-indicador').value = atual;
+      aoMudarIndicador();
+      atualizarBotaoPptx();
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  function atualizarBotaoPptx() { $('#ap-baixar').disabled = !estado.apres.dados || !(estado.apres.itens.length || $('#ap-kpis').checked); }
+
+  function desenharListaSlides() {
+    const it = estado.apres.itens;
+    $('#ap-lista').innerHTML = it.length ? it.map((s, i) => `<li><span>${i + 1}. ${esc(s.titulo)}<small>${MODELOS[s.modelo].nome} · ${PALETAS_GRAFICO[s.paleta].nome}</small></span>
+      <button class="btn btn-fantasma" data-mover="${i}" data-dir="-1" aria-label="Subir"${i ? '' : ' disabled'}>↑</button>
+      <button class="btn btn-fantasma" data-mover="${i}" data-dir="1" aria-label="Descer"${i < it.length - 1 ? '' : ' disabled'}>↓</button>
+      <button class="btn btn-fantasma" data-excluir="${i}" aria-label="Remover">✕</button></li>`).join('') : '<li class="texto-suave">Monte um gráfico e adicione aqui.</li>';
+    atualizarBotaoPptx();
+  }
+
+  function desenharTemplates() {
+    const t = estado.apres.templates;
+    ['capa', 'conteudo'].forEach((k) => {
+      const el = $(`#tp-previa-${k}`);
+      el.textContent = '';
+      if (t[k]) { const i = new Image(); i.alt = `Template ${k}`; i.src = t[k]; el.appendChild(i); } else el.textContent = 'Sem template';
+      $(`[data-tp-remover=${k}]`).hidden = !t[k];
+    });
+    $('#tp-cor-capa').value = t.corCapa; $('#tp-cor-conteudo').value = t.corConteudo;
+  }
+
+  function prepararTemplate(arquivo) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(arquivo), img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const k = Math.min(1, 1920 / img.naturalWidth), c = document.createElement('canvas');
+        c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+        const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0, c.width, c.height);
+        resolve({ dados: c.toDataURL('image/jpeg', 0.9), proporcao: img.naturalWidth / img.naturalHeight });
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Não foi possível ler esta imagem.')); };
+      img.src = url;
+    });
+  }
+
+  async function enviarTemplate(tipo, arq) {
+    carregando(true);
+    try {
+      const t = await prepararTemplate(arq);
+      await api('salvarTemplateApresentacao', tipo, t.dados, estado.token);
+      estado.apres.templates[tipo] = t.dados;
+      desenharTemplates();
+      toast(Math.abs(t.proporcao - 16 / 9) > 0.04 ? 'Template salvo, mas não está em 16:9 e ficará esticado.' : 'Template salvo', Math.abs(t.proporcao - 16 / 9) > 0.04);
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  function tamanhoImagem(dados) {
+    return new Promise((ok) => { const i = new Image(); i.onload = () => ok(i.naturalWidth / i.naturalHeight); i.onerror = () => ok(0); i.src = dados; });
+  }
+
+  const hexPpt = (c) => String(c).replace('#', '').toUpperCase();
+
+  function destaqueSlide(ind, p) {
+    if (p.multi || !p.categorias.length) return '';
+    const v = p.series[0].valores, max = Math.max(...v), i = v.indexOf(max);
+    const fmt = `${String(max).replace('.', ',')}${ind.unidade === '%' ? '%' : ` ${ind.unidade}`}`;
+    return `Maior resultado: ${p.categorias[i]} (${fmt})`;
+  }
+
+  async function gerarPowerPoint() {
+    const ap = estado.apres, d = ap.dados; if (!d) return;
+    carregando(true);
+    try {
+      await carregarScript(PPTXGEN, 'PptxGenJS', 'Não foi possível carregar o gerador de PowerPoint. Verifique a conexão.');
+      const t = ap.templates, pptx = new PptxGenJS();
+      pptx.layout = 'LAYOUT_WIDE';
+      pptx.title = $('#ap-nome').value; pptx.company = t.nomeUnidade;
+      const fundo = (img, cor) => (img ? { data: img.replace(/^data:/, '') } : { color: cor });
+      const objetosConteudo = [];
+      if (!t.conteudo) {
+        objetosConteudo.push({ rect: { x: 0, y: 0, w: 13.33, h: 0.14, fill: { color: hexPpt(t.corPrimaria) } } });
+        if (t.logo && !/image\/webp/.test(t.logo)) {
+          const r = await tamanhoImagem(t.logo);
+          if (r) objetosConteudo.push({ image: { x: 12.83 - 0.5 * r, y: 0.32, w: 0.5 * r, h: 0.5, data: t.logo } });
+        }
+      }
+      pptx.defineSlideMaster({ title: 'CAPA', background: fundo(t.capa, hexPpt(t.corSecundaria)) });
+      pptx.defineSlideMaster({ title: 'CONTEUDO', background: fundo(t.conteudo, 'FFFFFF'), objects: objetosConteudo });
+      const corCapa = hexPpt(t.corCapa), corTitulo = hexPpt(t.corConteudo);
+      const dataBr = (x) => x.split('-').reverse().join('/');
+
+      const capa = pptx.addSlide({ masterName: 'CAPA' });
+      capa.addText($('#ap-nome').value, { x: 0.8, y: 2.5, w: 11.7, h: 1.3, fontFace: 'Arial', fontSize: 44, bold: true, color: corCapa, valign: 'bottom' });
+      capa.addText($('#ap-sub').value, { x: 0.8, y: 3.9, w: 11.7, h: 0.6, fontFace: 'Arial', fontSize: 22, color: corCapa });
+      capa.addText(`${t.nomeUnidade}  |  ${dataBr(d.de)} a ${dataBr(d.ate)}`, { x: 0.8, y: 4.55, w: 11.7, h: 0.45, fontFace: 'Arial', fontSize: 15, color: corCapa });
+
+      const tituloSlide = (s, texto) => s.addText(texto, { x: 0.5, y: 0.3, w: 11.2, h: 0.7, fontFace: 'Arial', fontSize: 26, bold: true, color: corTitulo, valign: 'middle' });
+
+      if ($('#ap-kpis').checked) {
+        const s = pptx.addSlide({ masterName: 'CONTEUDO' });
+        tituloSlide(s, 'Indicadores gerais');
+        NOMES_KPI(d.kpis).forEach(([rotulo, valor], i) => {
+          const x = 0.7 + (i % 3) * 4.05, y = 1.5 + Math.floor(i / 3) * 2.45;
+          s.addText([{ text: String(valor), options: { fontSize: 40, bold: true, color: hexPpt(t.corPrimaria), breakLine: true } }, { text: rotulo, options: { fontSize: 16, color: '334155' } }],
+            { shape: pptx.ShapeType.roundRect, rectRadius: 0.08, x, y, w: 3.8, h: 2.15, fontFace: 'Arial', align: 'center', valign: 'middle', fill: { color: 'F1F5F9' }, line: { color: 'CBD5E1', width: 1 } });
+        });
+      }
+
+      const tiposPpt = { bar: pptx.charts.BAR, line: pptx.charts.LINE, area: pptx.charts.AREA, pie: pptx.charts.PIE, doughnut: pptx.charts.DOUGHNUT };
+      let ignorados = 0;
+      ap.itens.forEach((item) => {
+        const ind = d.indicadores[item.indicador], m = MODELOS[item.modelo], p = dadosModelo(ind, item.modelo, item.paleta);
+        if (p.vazio) { ignorados++; return; }
+        const s = pptx.addSlide({ masterName: 'CONTEUDO' });
+        tituloSlide(s, item.titulo);
+        const formato = ind.unidade === '%' ? '0.0"%"' : '0';
+        const opcoes = {
+          x: 0.5, y: 1.15, w: 12.33, h: 5.35,
+          chartColors: (p.colorirPontos ? p.cores.slice(0, p.categorias.length) : p.multi ? p.cores.slice(0, p.series.length) : [p.cores[0]]).map(hexPpt),
+          showLegend: p.multi || !!m.circular, legendPos: 'b', legendFontSize: 13, legendFontFace: 'Arial', legendColor: '334155',
+          showValue: !m.linha && !m.area && !(p.categorias.length > 16), dataLabelFontSize: 12, dataLabelFontFace: 'Arial', dataLabelColor: m.circular ? 'FFFFFF' : '334155', dataLabelFormatCode: formato
+        };
+        if (m.circular) {
+          Object.assign(opcoes, { showPercent: true, showValue: false, dataLabelFormatCode: '0%', dataBorder: { pt: 1, color: 'FFFFFF' } });
+          if (m.chartjs === 'doughnut') opcoes.holeSize = 58;
+        } else {
+          Object.assign(opcoes, { catAxisLabelFontSize: 12, catAxisLabelFontFace: 'Arial', catAxisLabelColor: '334155', valAxisLabelFontSize: 11, valAxisLabelColor: '64748B', valAxisLabelFormatCode: formato, valAxisMinVal: 0, valGridLine: { color: 'E2E8F0', size: 1 }, catGridLine: { style: 'none' } });
+          if (m.chartjs === 'bar') Object.assign(opcoes, { barDir: m.horizontal ? 'bar' : 'col', barGrouping: m.empilhado ? 'stacked' : 'clustered', barGapWidthPct: 55, catAxisOrientation: m.horizontal ? 'maxMin' : 'minMax' });
+          if (m.empilhado) opcoes.showValue = false;
+          if (m.linha) Object.assign(opcoes, { lineSize: 3, lineDataSymbolSize: p.categorias.length > 25 ? 0 : 8 });
+        }
+        s.addChart(tiposPpt[m.area ? 'area' : m.chartjs], p.series.map((x) => ({ name: x.nome, labels: p.categorias, values: x.valores })), opcoes);
+        const nota = destaqueSlide(ind, p);
+        if (nota) s.addText(nota, { x: 0.5, y: 6.55, w: 12.33, h: 0.45, fontFace: 'Arial', fontSize: 15, bold: true, color: '334155' });
+      });
+
+      baixarBlob(await pptx.write({ outputType: 'blob' }), `reuniao-resultados_${d.de}_a_${d.ate}.pptx`);
+      toast(ignorados ? `PowerPoint gerado. ${ignorados} gráfico(s) sem dados ficaram de fora.` : 'PowerPoint gerado');
+    } catch (e) { trataErro(e); } finally { carregando(false); }
+  }
+
+  /* ---------- Importação de planilha ---------- */
+
+  function carregarSheetJS() {
+    if (window.XLSX) return Promise.resolve();
+    return new Promise((ok, falha) => {
+      const s = document.createElement('script'); s.src = SHEETJS; s.onload = ok;
+      s.onerror = () => falha(new Error('Não foi possível carregar o leitor de Excel. Verifique a conexão ou envie em CSV.'));
+      document.head.appendChild(s);
+    });
+  }
+
+  function base64Bytes(bytes) {
+    let bin = ''; const passo = 0x8000;
+    for (let i = 0; i < bytes.length; i += passo) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + passo));
+    return btoa(bin);
+  }
+  const base64Texto = (t) => base64Bytes(new TextEncoder().encode(t));
+
+  /** Converte a aba com mais linhas em CSV, preservando hora e data sem ambiguidade. */
+  async function excelParaBase64(arquivo) {
+    await carregarSheetJS();
+    const wb = XLSX.read(new Uint8Array(await arquivo.arrayBuffer()), { type: 'array', cellNF: true });
+    const ws = wb.SheetNames.map((n) => wb.Sheets[n]).sort((a, b) => linhasDe(b) - linhasDe(a))[0];
+    Object.keys(ws).forEach((k) => {
+      const c = ws[k];
+      if (k[0] === '!' || c.t !== 'n' || !c.z || !XLSX.SSF.is_date(c.z)) return;
+      const d = XLSX.SSF.parse_date_code(c.v), p2 = (n) => String(n).padStart(2, '0');
+      c.t = 's';
+      c.v = c.w = c.v < 1 ? `${p2(d.H)}:${p2(d.M)}` : `${d.y}-${p2(d.m)}-${p2(d.d)}`;
+      delete c.z;
+    });
+    return base64Texto(XLSX.utils.sheet_to_csv(ws, { FS: ';', blankrows: false }));
+  }
+  function linhasDe(ws) { return ws['!ref'] ? XLSX.utils.decode_range(ws['!ref']).e.r : 0; }
+
+  function statusImportacao(texto, erro) { const s = $('#imp-status'); s.textContent = texto; s.classList.toggle('erro', !!erro); }
+
+  function abrirImportar() {
+    estado.importacao = null;
+    $('#imp-arquivo').value = ''; $('#imp-mapa').hidden = true; $('#imp-resultado').hidden = true;
+    $('#imp-confirmar').disabled = true; statusImportacao('');
+    $('#imp-semestre').value = estado.admin.semestreAtivo;
+    modal('modal-importar').show();
+  }
+
+  async function analisarArquivo() {
+    const arq = $('#imp-arquivo').files[0]; if (!arq) return;
+    const semestre = $('#imp-semestre').value.trim();
+    $('#imp-mapa').hidden = true; $('#imp-resultado').hidden = true; $('#imp-confirmar').disabled = true;
+    if (!/^\d{4}\.[12]$/.test(semestre)) { statusImportacao('Informe o semestre no formato 2026.2 e selecione o arquivo novamente.', true); $('#imp-arquivo').value = ''; return; }
+    statusImportacao('Analisando a planilha…');
+    try {
+      const excel = /\.xlsx?$/i.test(arq.name);
+      const base64 = excel ? await excelParaBase64(arq) : base64Bytes(new Uint8Array(await arq.arrayBuffer()));
+      const p = await api('processarUploadBaseDados', base64, arq.name, semestre, estado.token, { previa: true });
+      estado.importacao = { base64, nome: arq.name, cabecalhos: p.cabecalhos };
+      desenharMapeamento(p);
+    } catch (e) { if (ehSessao(e)) trataErro(e); else statusImportacao(msgErro(e), true); }
+  }
+
+  function desenharMapeamento(p) {
+    statusImportacao(`${p.totalLinhas} linhas encontradas.`);
+    $('#imp-campos').innerHTML = Object.keys(p.campos).map((c) => `<div><label class="form-label" for="map-${c}">${esc(p.campos[c])}${c === 'sala' ? ' *' : ''}</label>
+      <select id="map-${c}" class="form-select" data-campo="${c}"><option value="">Não usar</option>${p.cabecalhos.map((h, i) => `<option value="${i}"${p.mapa[c] === i ? ' selected' : ''}>${esc(h || `Coluna ${i + 1}`)}</option>`).join('')}</select></div>`).join('');
+    $('#imp-amostra-cab').innerHTML = `<tr>${p.cabecalhos.map((h) => `<th>${esc(h)}</th>`).join('')}</tr>`;
+    $('#imp-amostra').innerHTML = p.amostra.map((l) => `<tr>${p.cabecalhos.map((_, i) => `<td>${esc(l[i])}</td>`).join('')}</tr>`).join('');
+    $('#imp-mapa').hidden = false;
+    verificarMapa();
+  }
+
+  function verificarMapa() { $('#imp-confirmar').disabled = $('#map-sala').value === ''; }
+
+  async function confirmarImportacao() {
+    const imp = estado.importacao; if (!imp) return;
+    const mapa = {};
+    $$('#imp-campos select').forEach((s) => { if (s.value !== '') mapa[s.dataset.campo] = Number(s.value); });
+    const semestre = $('#imp-semestre').value.trim();
+    if (!/^\d{4}\.[12]$/.test(semestre)) { statusImportacao('Informe o semestre no formato 2026.2.', true); return; }
+    $('#imp-confirmar').disabled = true; statusImportacao('Importando…');
+    try {
+      const r = await api('processarUploadBaseDados', imp.base64, imp.nome, semestre, estado.token, { mapa, tornarAtivo: $('#imp-ativo').checked });
+      const alertas = [];
+      if (r.semBloco) alertas.push(`${r.semBloco} sem bloco identificado (aparecem na aba SEM BLOCO)`);
+      if (r.semHorario) alertas.push(`${r.semHorario} sem horário`);
+      statusImportacao('');
+      $('#imp-mapa').hidden = true;
+      const res = $('#imp-resultado'); res.hidden = false;
+      res.innerHTML = `<strong>${r.inseridas} aulas importadas em ${esc(r.anoSemestre)}.</strong><br>${r.duplicadas} já existentes e ${r.ignoradas} sem sala física foram ignoradas.${alertas.length ? `<br>Atenção: ${esc(alertas.join('; '))}.` : ''}`;
+      estado.importacao = null; estado.painel = null;
+      estado.admin = await api('obterPainelAdmin', estado.token);
+      desenharAdmin();
+      await carregarDashboard();
+    } catch (e) { $('#imp-confirmar').disabled = false; if (ehSessao(e)) trataErro(e); else statusImportacao(msgErro(e), true); }
+  }
+
+  /* ---------- Eventos ---------- */
+
+  function ligarEventos() {
+    $('#form-login').addEventListener('submit', login);
+    $('#login-ver').addEventListener('click', () => {
+      const i = $('#login-senha'), mostrar = i.type === 'password';
+      i.type = mostrar ? 'text' : 'password'; $('#login-ver').textContent = mostrar ? 'Ocultar' : 'Ver';
+    });
+    $$('[data-sair]').forEach((b) => b.addEventListener('click', () => sair()));
+
+    $('#ins-blocos').addEventListener('click', (e) => { const b = e.target.closest('[data-bloco]'); if (b) { estado.bloco = b.dataset.bloco; desenharInspetor(); } });
+    $('#ins-turnos').addEventListener('click', (e) => { const b = e.target.closest('[data-turno]'); if (b) { estado.turno = b.dataset.turno; desenharTurnos(); desenharInspetor(); } });
+    $('#ins-salas').addEventListener('click', (e) => { const c = e.target.closest('[data-sala-id]'); if (c) abrirFormulario(salasVisiveis().find((s) => s.id === c.dataset.salaId)); });
+    $('#ins-nova').addEventListener('click', () => abrirFormulario(null));
+    $('#ins-voltar-admin').addEventListener('click', abrirAdmin);
+    $('#adm-ir-ronda').addEventListener('click', abrirInspetor);
+
+    $('#f-situacoes').innerHTML = SITUACOES.map((s) => `<button type="button" data-valor="${esc(s.valor)}" data-nivel="${s.nivel}" aria-pressed="false">${s.titulo}${s.sub ? `<small>${s.sub}</small>` : ''}</button>`).join('');
+    ['#f-prof', '#f-alunos'].forEach((id) => { $(id).innerHTML = ['SIM', 'NÃO'].map((v) => `<button type="button" data-valor="${v}" aria-pressed="false">${v}</button>`).join(''); });
+    $('#f-bloco').innerHTML = BLOCOS.concat(SEM_BLOCO).map((b) => `<option>${b}</option>`).join('');
+    $('#f-curso').innerHTML = CURSOS.map((c) => `<option>${c}</option>`).join('');
+    $('#f-situacoes').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) definirSituacao(b.dataset.valor); });
+    $('#f-prof').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { estado.form.prof = b.dataset.valor; marcar('#f-prof', b.dataset.valor); validarForm(); } });
+    $('#f-alunos').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { estado.form.alunos = b.dataset.valor; marcar('#f-alunos', b.dataset.valor); validarForm(); } });
+    $('#f-horario').addEventListener('change', () => {
+      const a = estado.form.aulas.find((x) => x.horario === $('#f-horario').value);
+      if (a) preencherAula(a);
+      validarForm();
+    });
+    $('#f-sala').addEventListener('input', validarForm);
+    $('#f-prof-editar').addEventListener('click', abrirTrocaProfessor);
+    $('#f-prof-lista').addEventListener('change', aoEscolherProfessor);
+    $('#f-prof-outro').addEventListener('input', () => { $('#f-professor').value = $('#f-prof-outro').value.trim(); mostrarProfessor(); });
+    $('#f-foto-btn').addEventListener('click', () => $('#f-foto').click());
+    $('#f-foto').addEventListener('change', aoEscolherFoto);
+    $('#f-foto-remover').addEventListener('click', () => { estado.foto = null; $('#f-foto-previa').hidden = true; $('#f-foto-btn').hidden = false; });
+    $('#form-inspecao').addEventListener('submit', salvarFormulario);
+    setInterval(() => { if (document.getElementById('modal-inspecao').classList.contains('show')) relogio(); }, 1000);
+
+    $('#adm-abas').addEventListener('click', (e) => { const b = e.target.closest('[data-aba]'); if (b) trocarAbaAdmin(b.dataset.aba); });
+    $('#adm-ir-usuarios').addEventListener('click', (e) => { e.preventDefault(); trocarAbaAdmin('usuarios'); });
+    $('#dash-aplicar').addEventListener('click', async () => { carregando(true); try { await carregarDashboard(); } catch (e) { trataErro(e); } finally { carregando(false); } });
+    $('#dash-recentes').addEventListener('click', (e) => { const b = e.target.closest('[data-foto]'); if (b) verFoto(b.dataset.foto); });
+
+    $('#form-relatorio').addEventListener('submit', gerarRelatorio);
+    $('#rel-pdf').addEventListener('click', gerarPdf);
+    ['#rel-de', '#rel-ate', '#rel-colaborador'].forEach((id) => $(id).addEventListener('change', () => { $('#rel-pdf').disabled = true; $('#rel-excel').disabled = true; limparPdf(); }));
+    $('#rel-excel').addEventListener('click', excelRelatorio);
+    $('#pl-excel').addEventListener('click', excelBase);
+
+    $('#ins-lanterna').addEventListener('click', alternarLanterna);
+    $('#ins-conferir').addEventListener('click', abrirConferencia);
+    $('#cf-turnos').addEventListener('click', (e) => { const b = e.target.closest('[data-cf-turno]'); if (b) { estado.turno = b.dataset.cfTurno; desenharTurnos(); desenharInspetor(); desenharConferencia(); } });
+    $('#cf-corpo').addEventListener('change', (e) => { if (e.target.id === 'cf-minhas') { estado.confMinhas = e.target.checked; desenharConferencia(); } });
+    $('#cf-corpo').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-cf-sala]'); if (!b) return;
+      const sala = estado.painel.salas.find((s) => s.id === b.dataset.cfSala), horario = b.dataset.cfHorario;
+      document.getElementById('modal-conferencia').addEventListener('hidden.bs.modal', () => abrirFormulario(sala, horario), { once: true });
+      modal('modal-conferencia').hide();
+    });
+
+    $('#adm-aparencia').addEventListener('click', () => { desenharOpcoesAparencia(); modal('modal-aparencia').show(); });
+    $('#ap-tema').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { gravarPreferencia('afya_tema', b.dataset.valor); desenharOpcoesAparencia(); aplicarAparencia(); } });
+    $('#ap-paletas').addEventListener('click', (e) => { const b = e.target.closest('[data-paleta]'); if (b) { gravarPreferencia('afya_paleta', b.dataset.paleta); desenharOpcoesAparencia(); aplicarAparencia(); } });
+
+    $('#ap-paleta').innerHTML = Object.keys(PALETAS_GRAFICO).map((k) => `<option value="${k}">${PALETAS_GRAFICO[k].nome}</option>`).join('');
+    $('#form-apres').addEventListener('submit', carregarApresentacao);
+    $('#ap-indicador').addEventListener('change', aoMudarIndicador);
+    $('#ap-modelo').addEventListener('change', desenharPrevia);
+    $('#ap-paleta').addEventListener('change', desenharPrevia);
+    $('#ap-kpis').addEventListener('change', atualizarBotaoPptx);
+    $('#ap-adicionar').addEventListener('click', () => {
+      estado.apres.itens.push({ indicador: $('#ap-indicador').value, modelo: $('#ap-modelo').value, paleta: $('#ap-paleta').value, titulo: $('#ap-titulo').value.trim() || indicadorAtual().titulo });
+      desenharListaSlides(); toast('Gráfico adicionado');
+    });
+    $('#ap-lista').addEventListener('click', (e) => {
+      const it = estado.apres.itens, m = e.target.closest('[data-mover]'), x = e.target.closest('[data-excluir]');
+      if (m) { const i = Number(m.dataset.mover), j = i + Number(m.dataset.dir); [it[i], it[j]] = [it[j], it[i]]; desenharListaSlides(); }
+      if (x) { it.splice(Number(x.dataset.excluir), 1); desenharListaSlides(); }
+    });
+    $('#ap-baixar').addEventListener('click', gerarPowerPoint);
+    ['capa', 'conteudo'].forEach((k) => {
+      $(`[data-tp-enviar=${k}]`).addEventListener('click', () => $(`#tp-arq-${k}`).click());
+      $(`#tp-arq-${k}`).addEventListener('change', (e) => { const a = e.target.files[0]; if (a) enviarTemplate(k, a); e.target.value = ''; });
+      $(`[data-tp-remover=${k}]`).addEventListener('click', async () => {
+        carregando(true);
+        try { await api('removerTemplateApresentacao', k, estado.token); estado.apres.templates[k] = ''; desenharTemplates(); toast('Template removido'); }
+        catch (e) { trataErro(e); } finally { carregando(false); }
+      });
+    });
+    ['#tp-cor-capa', '#tp-cor-conteudo'].forEach((id) => $(id).addEventListener('change', async () => {
+      try {
+        await api('salvarCoresTemplate', $('#tp-cor-capa').value, $('#tp-cor-conteudo').value, estado.token);
+        estado.apres.templates.corCapa = $('#tp-cor-capa').value; estado.apres.templates.corConteudo = $('#tp-cor-conteudo').value;
+      } catch (e) { trataErro(e); }
+    }));
+    $('#pl-importar').addEventListener('click', abrirImportar);
+    $('#imp-arquivo').addEventListener('change', analisarArquivo);
+    $('#imp-campos').addEventListener('change', verificarMapa);
+    $('#imp-confirmar').addEventListener('click', confirmarImportacao);
+    $('#pl-salvar-ativo').addEventListener('click', async () => {
+      carregando(true);
+      try {
+        estado.admin.semestreAtivo = await api('definirSemestreAtivo', $('#pl-semestre-ativo').value, estado.token);
+        estado.painel = null; toast('Semestre vigente atualizado');
+      } catch (e) { trataErro(e); } finally { carregando(false); }
+    });
+
+    $('#us-novo').addEventListener('click', () => abrirUsuario(null));
+    $('#form-usuario').addEventListener('submit', salvarUsuarioForm);
+    $('#us-lista').addEventListener('click', async (e) => {
+      const ed = e.target.closest('[data-editar]');
+      if (ed) { abrirUsuario(estado.admin.usuarios.find((u) => u.id === ed.dataset.editar)); return; }
+      const st = e.target.closest('[data-status-id]');
+      if (!st) return;
+      carregando(true);
+      try { estado.admin.usuarios = await api('alterarStatusUsuario', st.dataset.statusId, st.dataset.ativar === '1', estado.token); desenharUsuarios(); toast('Status atualizado'); }
+      catch (err) { trataErro(err); } finally { carregando(false); }
+    });
+
+    $('#form-marca').addEventListener('submit', async (ev) => {
+      ev.preventDefault(); carregando(true);
+      try {
+        const c = await api('salvarConfiguracaoMarca', { nomeUnidade: $('#mc-nome').value, logoUrl: $('#mc-logo').value, corPrimaria: $('#mc-primaria').value.toUpperCase(), corSecundaria: $('#mc-secundaria').value.toUpperCase() }, estado.token);
+        aplicarMarca(c); toast('Marca atualizada');
+      } catch (e) { trataErro(e); } finally { carregando(false); }
+    });
+    $('#mc-logo-enviar').addEventListener('click', () => $('#mc-logo-arquivo').click());
+    $('#mc-logo-arquivo').addEventListener('change', async (ev) => {
+      const arq = ev.target.files[0]; if (!arq) return;
+      carregando(true);
+      try {
+        const c = await api('salvarLogoMarca', await prepararLogo(arq), estado.token);
+        aplicarMarca(c); desenharLogoAdmin(c); toast('Logo atualizado');
+      } catch (e) { trataErro(e); } finally { carregando(false); ev.target.value = ''; }
+    });
+    $('#mc-logo-remover').addEventListener('click', async () => {
+      carregando(true);
+      try {
+        const c = await api('removerLogoMarca', estado.token);
+        aplicarMarca(c); desenharLogoAdmin(c); toast('Logo removido');
+      } catch (e) { trataErro(e); } finally { carregando(false); }
+    });
+
+    window.addEventListener('online', enviarFila);
+    window.addEventListener('beforeunload', (e) => { if (estado.fila.length) { e.preventDefault(); e.returnValue = ''; } });
+  }
+
+  /* ---------- Início ---------- */
+
+  async function iniciar() {
+    ligarEventos();
+    api('obterConfigPublica').then(aplicarMarca).catch(() => {});
+    const token = lerGuardado();
+    if (!token) return;
+    try { entrarNoApp(await api('retomarSessao', token)); }
+    catch (e) { guardar(null); }
+  }
+
+  iniciar();
+})();
+</script>
